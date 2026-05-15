@@ -90,14 +90,15 @@ def dashboard():
 
 @app.route("/api/gas", methods=["POST"])
 def gas_proxy():
-    if "user" not in session:
-        return jsonify({"ok": False, "message": "Unauthorized"}), 401
-    
-    start_time = time.time()
     data = request.json
     func_name = data.get("function")
     args = data.get("args", [])
+
+    # CRITICAL: globalLogin must be allowed without a session as it is the auth trigger
+    if func_name != "globalLogin" and "user" not in session:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
     
+    start_time = time.time()
     print(f"GAS API Call: {func_name}")
     
     func_map = {
