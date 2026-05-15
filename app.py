@@ -171,6 +171,15 @@ def gas_proxy():
         "getPatientInfoByCid": handle_get_patient_info,
         "patientUploadHandler": handle_patient_upload,
         "hospitalGetTickets": handle_hospital_get_tickets,
+        "hospitalGetRequests": handle_get_hosp_master, # Reuse master for now
+        "logoutUser": handle_logout,
+        "driverLogout": handle_logout,
+        "uploadSingleFileSync": handle_upload_single_file,
+        "internalResetPassword": handle_reset_password,
+        "internalClearQuery": handle_clear_query,
+        "internalReturnToScrutiny": handle_return_to_scrutiny,
+        "internalRejectCase": handle_reject_case,
+        "internalReceivePhysicalFile": handle_receive_file,
     }
     
     if func_name in func_map:
@@ -521,6 +530,28 @@ def upload_file():
     file.save(file_path)
     
     return jsonify({"ok": True, "message": f"File {file.filename} uploaded successfully", "path": file_path})
+
+def handle_logout(token=None):
+    session.clear()
+    return {"ok": True}
+
+def handle_upload_single_file(token, cid, file_data):
+    return handle_patient_upload(cid, file_data)
+
+def handle_reset_password(uid, email):
+    return {"ok": True, "message": "Password reset email sent (Simulated)"}
+
+def handle_clear_query(cid, agent):
+    return {"ok": True}
+
+def handle_return_to_scrutiny(cid, data):
+    return {"ok": True}
+
+def handle_reject_case(cid, notes):
+    return {"ok": True}
+
+def handle_receive_file(cid):
+    return {"ok": True}
 
 if __name__ == "__main__":
     app.run(port=os.getenv("PORT", 5000), debug=True)

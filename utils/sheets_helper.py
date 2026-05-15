@@ -52,6 +52,21 @@ class SheetsHelper:
             if now < expiry:
                 return data
 
+        # Try FAST CSV export first (highly recommended for performance)
+        url = f"https://docs.google.com/spreadsheets/d/{self.spreadsheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+        try:
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                df = pd.read_csv(io.StringIO(response.text))
+                # Fill NaN with empty string to avoid JSON issues
+                df = df.fillna("")
+                data = df.to_dict(orient='records')
+                self._cache[sheet_name] = (data, now + self._cache_expiry)
+                return data
+        except Exception as e:
+            print(f"Fast CSV Fetch failed for {sheet_name}: {e}")
+
+        # Fallback to API if CSV fails or if private data needed
         client = self._get_client()
         if client:
             try:
@@ -61,20 +76,7 @@ class SheetsHelper:
                 self._cache[sheet_name] = (data, now + self._cache_expiry)
                 return data
             except Exception as e:
-                print(f"Error reading {sheet_name} via API: {e}")
-        
-        # Fallback to public CSV (only if not authenticated)
-        url = f"https://docs.google.com/spreadsheets/d/{self.spreadsheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
-        try:
-            response = requests.get(url, timeout=5)
-            if response.status_code == 200:
-                df = pd.read_csv(io.StringIO(response.text))
-                data = df.to_dict(orient='records')
-                # Cache CSV results too but shorter
-                self._cache[sheet_name] = (data, now + 30) 
-                return data
-        except Exception as e:
-            print(f"Error reading {sheet_name} via CSV: {e}")
+                print(f"API Fetch failed for {sheet_name}: {e}")
         
         return []
 
