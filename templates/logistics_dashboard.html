@@ -1,0 +1,590 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Payton Logistics">
+  <link rel="apple-touch-icon" href="https://cashlesseverywhere.com/images/logo/logo.png">
+  <title>Payton Logistics</title>
+  <style>
+    //* 🔹 ULTRA COMPACT LOGISTICS PALETTE 🔹 */
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f1f5f9; margin: 0; padding: 0; padding-bottom: 20px; 
+    min-height: 100vh; overflow-x: hidden; overflow-y: auto; }
+  
+  /* 🛠️ ENSURE SCROLLING IS ACTIVE */
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto; 
+}
+    
+    /* TOAST NOTIFICATIONS */
+    #toast-container { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; width: 90%; max-width: 350px; }
+    .toast { padding: 12px 15px; border-radius: 8px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideDown 0.3s forwards; background: #1e293b; color: white; }
+    .toast.success { border-left: 5px solid #10b981; }
+    .toast.error { border-left: 5px solid #ef4444; }
+    @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* HEADER */
+    .header { background: #0f172a; color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header h1 { margin: 0; font-size: 16px; font-weight: 800; letter-spacing: 0.5px; }
+    .status-badge { background: #10b981; color: white; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 12px; text-transform: uppercase; }
+
+    /* TOP NAV (STICKY) */
+    .top-nav { position: sticky; top: 43px; 
+    left: 0; right: 0; background: white; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-around; z-index: 99;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .nav-item { flex: 1; padding: 10px 5px; text-align: center; color: #64748b; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative;}
+    .nav-item .icon { font-size: 18px; }
+    .nav-item .text { font-size: 10px; font-weight: 800; text-transform: uppercase; }
+    .nav-item.active { color: #4f46e5; }
+    .nav-item.active .text { color: #4f46e5; }
+    .nav-badge { background: #ef4444; color: white; font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 10px; position: absolute; top: 4px; right: 30%; display: none; }
+
+    .container { padding: 10px; max-width: 600px; margin: auto; }
+    
+    /* 🔹 CLICKABLE FILTERS 🔹 */
+    .summary-box { background: white; padding: 10px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+    .summary-box h3 { margin: 0 0 10px 0; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .hosp-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .h-tag { background: #f8fafc; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; color: #475569; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: 0.2s; }
+    .h-tag span { background: #cbd5e1; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; }
+    .h-tag.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+    .h-tag.active span { background: white; color: #4f46e5; }
+
+    /* 🔹 ULTRA COMPACT CARDS 🔹 */
+    .card { background: white; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; border-left: 4px solid #f59e0b; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+    .border-hosp { border-left-color: #f59e0b; } .border-pat { border-left-color: #f97316; } .border-tpa { border-left-color: #8b5cf6; } .border-del { border-left-color: #94a3b8; opacity: 0.8; } .border-off { border-left-color: #3b82f6; }
+
+    .c-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+    .c-hosp { font-weight: 800; font-size: 14px; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
+    .c-badge { font-size: 9px; font-weight: 900; padding: 2px 6px; border-radius: 4px; color: white; text-transform: uppercase; letter-spacing: 0.5px;}
+    
+    .bg-yellow { background: #f59e0b; } .bg-orange { background: #f97316; } .bg-purple { background: #8b5cf6; } .bg-blue { background: #3b82f6; } .bg-green { background: #10b981; }
+
+    .c-sub { font-size: 11.5px; color: #475569; display: flex; justify-content: space-between; margin-bottom: 2px; }
+    .c-sub b { color: #1e293b; }
+
+    /* ACTION ZONES */
+    .c-action { display: flex; gap: 6px; margin-top: 6px; align-items: stretch; }
+    .inp-pg { width: 55px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center; font-size: 12px; font-weight: bold; background: #f8fafc; outline: none; }
+    .inp-otp { flex: 1; min-width: 0; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; text-align: center; font-size: 12px; font-weight: bold; letter-spacing: 1px; background: #f8fafc; outline: none; }
+    .inp-pg:focus, .inp-otp:focus { border-color: #4f46e5; background: white; }
+    
+    .btn { background: #16a34a; color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: 800; font-size: 11px; cursor: pointer; text-transform: uppercase; display: flex; justify-content: center; align-items: center; box-sizing: border-box;}
+    .btn:active { transform: scale(0.98); }
+    .btn-full { width: 100%; padding: 10px; font-size: 12px; }
+    .btn-purple { background: #6d28d9; }
+    .btn-blue { background: #2563eb; }
+
+    .cam-input { display: none; }
+    .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; }
+    .empty-state .icon { font-size: 30px; margin-bottom: 5px; display: block; }
+    .empty-state .text { font-size: 14px; font-weight: bold; color: #64748b; }
+    
+    /* 🔹 SEARCH BAR 🔹 */
+    .search-wrapper { position: relative; width: 100%; margin-bottom: 15px; }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 18px; height: 18px; pointer-events: none; }
+    .search-input { width: 100%; padding: 12px 12px 12px 38px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #ffffff; outline: none; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .search-input:focus { border-color: #4f46e5; }
+
+    /* 🔹 SKELETON LOADER 🔹 */
+    .skeleton { background: #e2e8f0; background-image: linear-gradient(90deg, #e2e8f0 0px, #f1f5f9 40px, #e2e8f0 80px); background-size: 600px; animation: shimmer 1.5s infinite linear; border-radius: 4px; }
+    .sk-card { height: 80px; margin-bottom: 10px; border-radius: 8px; }
+    @keyframes shimmer { 0% { background-position: -300px; } 100% { background-position: 300px; } }
+  </style>
+</head>
+<body>
+
+  <div id="modal-timeout" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.9); z-index:10000; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
+      <div style="background:white; padding:30px; border-radius:16px; width:100%; max-width:320px; text-align:center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+          <div style="font-size:45px; margin-bottom:15px;">⏳</div>
+          <h3 style="margin-top:0; color:#ef4444; font-size:22px;">Session Expiring</h3>
+          <p style="color:#64748b; font-size:14px; margin-bottom:20px; line-height: 1.5;">
+              Your app will lock in <b id="timer-display" style="color:#ef4444; font-size:16px;">02:00</b> due to inactivity.
+          </p>
+          <button onclick="resetTimersFromUI()" style="padding:14px; background:#10b981; color:white; width:100%; border-radius:8px; border:none; font-weight:bold; font-size:15px; cursor:pointer;">Stay Logged In</button>
+      </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <div class="header">
+    <img src="https://cashlesseverywhere.com/images/logo/logo.png" alt="Payton Logistics" style="height: 24px; width: auto; filter: brightness(0) invert(1);">
+    <div style="display:flex; gap:8px; align-items:center;">
+        <button id="shift-btn" style="background:#ef4444; color:white; font-size:10px; font-weight:800; padding:4px 10px; border-radius:12px; border:none; cursor:pointer; text-transform:uppercase; box-shadow:0 2px 4px rgba(0,0,0,0.2);" onclick="handleShiftToggle()">PUNCH IN</button>
+        <div class="status-badge">ONLINE</div>
+    </div>
+  </div>
+
+  <div class="top-nav">
+    <div id="tab-1" class="nav-item active" onclick="switchTab(1)">
+      <div class="icon">📋</div><div class="text">Pickups</div>
+      <div id="badge-pick" class="nav-badge">0</div>
+    </div>
+    <div id="tab-2" class="nav-item" onclick="switchTab(2)">
+      <div class="icon">🎒</div><div class="text">Cargo</div>
+      <div id="badge-bag" class="nav-badge">0</div>
+    </div>
+    <div id="tab-3" class="nav-item" onclick="switchTab(3)">
+      <div class="icon">✅</div><div class="text">Done</div>
+    </div>
+  </div>
+
+  <div class="container">
+    
+    <div class="search-wrapper" style="width: 100%; margin-bottom: 15px;">
+       <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+       <input type="text" id="routeSearch" class="search-input" placeholder="Search Patient, Hospital, or Case ID..." onkeyup="filterRoute()">
+    </div>
+
+    <div id="view-1">
+      <div class="summary-box">
+        <h3>📍 Filters & Locations</h3>
+        <div class="hosp-tags" id="hosp-summary"></div>
+      </div>
+      <div id="pickup-list"></div>
+    </div>
+
+    <div id="view-2" style="display:none;">
+      <div id="inventory-list"></div>
+    </div>
+
+    <div id="view-3" style="display:none;">
+      <div id="delivered-list"></div>
+    </div>
+  </div>
+
+  
+  <script>
+    // 🛡️ SECURE TOKEN PULL
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentToken = urlParams.get('token') || "<?= typeof token !== 'undefined' ? token : '' ?>";
+
+    let isWorking = false;
+    let activeFilter = 'ALL'; 
+    
+    // ⏱️ STRICT AUTO-LOGOUT LOGIC
+    let warningTime = 0;
+    let expireTime = 0;
+    let sessionTick;
+
+    function startSessionTimer() {
+        const now = Date.now();
+        warningTime = now + 1800000; // 30 mins
+        expireTime = warningTime + 120000; // +2 mins (32 total)
+        if (!sessionTick) sessionTick = setInterval(checkSessionClock, 1000);
+    }
+
+    function checkSessionClock() {
+        const now = Date.now();
+        if (now >= expireTime) {
+            clearInterval(sessionTick); sessionTick = null;
+            executeHardLogout();
+        } else if (now >= warningTime) {
+            document.getElementById('modal-timeout').style.display = 'flex';
+            let secondsLeft = Math.ceil((expireTime - now) / 1000);
+            let mins = Math.floor(secondsLeft / 60);
+            let secs = secondsLeft % 60;
+            document.getElementById('timer-display').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        }
+    }
+
+    function resetTimersFromUI() {
+        document.getElementById('modal-timeout').style.display = 'none';
+        startSessionTimer(); 
+    }
+
+    function executeHardLogout() {
+        if(currentToken) google.script.run.driverLogout(currentToken);
+        const modal = document.getElementById('modal-timeout');
+        modal.style.display = 'flex';
+        modal.firstElementChild.innerHTML = `
+            <div style="font-size:45px; margin-bottom:15px;">🔒</div>
+            <h3 style="margin-top:0; color:#ef4444; font-size:22px;">Session Locked</h3>
+            <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Logged out for security.</p>
+            <button id="force-relogin-btn" style="padding:14px; background:#ef4444; color:white; width:100%; border-radius:8px; border:none; font-weight:bold; font-size:15px;">Relogin</button>
+        `;
+        document.getElementById('force-relogin-btn').onclick = function() {
+            this.innerText = "Redirecting...";
+            window.top.location.replace("<?= ScriptApp.getService().getUrl() ?>?page=Login&ts=" + Date.now());
+        };
+    }
+
+    // 👤 GET DRIVER ID FROM TEMPLATE
+    const currentDriver = "<?= typeof driverId !== 'undefined' ? driverId : '' ?>";
+
+    // 🚀 BULLETPROOF PAGE LOADER (Fixes the Blank White Screen!)
+    document.addEventListener("DOMContentLoaded", () => {
+        loadData();
+        checkShiftStatus();            // CHECK ATTENDANCE STATUS
+        setInterval(loadData, 120000); // 120 SECONDS REFRESH
+        startSessionTimer();          // START SECURITY CLOCK
+    });
+
+    // Reset Security Timer on Mobile Taps
+    document.addEventListener('click', () => { 
+        if(document.getElementById('modal-timeout') && document.getElementById('modal-timeout').style.display !== 'flex') startSessionTimer(); 
+    });
+    document.addEventListener('touchstart', () => { 
+        if(document.getElementById('modal-timeout') && document.getElementById('modal-timeout').style.display !== 'flex') startSessionTimer(); 
+    });
+
+    // 🚚 --- CORE LOGISTICS LOGIC --- 🚚
+    function showToast(msg, isSuccess) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${isSuccess ? 'success' : 'error'}`;
+      toast.innerHTML = `<span style="font-size:18px">${isSuccess ? '✅' : '⚠️'}</span> <span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.animation = 'slideDown 0.3s forwards reverse'; setTimeout(() => toast.remove(), 300); }, 3500);
+    }
+
+    function switchTab(n) {
+      document.getElementById('view-1').style.display = (n === 1 ? 'block' : 'none');
+      document.getElementById('view-2').style.display = (n === 2 ? 'block' : 'none');
+      document.getElementById('view-3').style.display = (n === 3 ? 'block' : 'none');
+      document.getElementById('tab-1').className = (n === 1 ? 'nav-item active' : 'nav-item');
+      document.getElementById('tab-2').className = (n === 2 ? 'nav-item active' : 'nav-item');
+      document.getElementById('tab-3').className = (n === 3 ? 'nav-item active' : 'nav-item');
+    }
+
+    function setFilter(loc) {
+       activeFilter = loc;
+       document.querySelectorAll('.h-tag').forEach(tag => tag.classList.remove('active'));
+       const el = document.getElementById('filter-' + loc.replace(/\s+/g, ''));
+       if(el) el.classList.add('active');
+       
+       filterRoute(); // 🔹 Trigger the unified search & location filter
+    }
+
+    // 🔹 UNIFIED SEARCH & LOCATION ENGINE 🔹
+    function filterRoute() {
+       let searchInput = document.getElementById('routeSearch');
+       let q = searchInput ? searchInput.value.toLowerCase().trim() : "";
+       
+       // Filter View 1 (Pickups) with both Location Tags and Search Text
+       document.querySelectorAll('.pickup-card').forEach(card => {
+          let loc = card.getAttribute('data-loc');
+          let text = card.innerText.toLowerCase();
+          let matchesLoc = (activeFilter === 'ALL' || loc === activeFilter);
+          let matchesSearch = text.includes(q);
+          card.style.display = (matchesLoc && matchesSearch) ? 'flex' : 'none';
+       });
+       
+       // Filter View 2 and 3 (Cargo & Delivered) using just the Search Text
+       document.querySelectorAll('#inventory-list .card, #delivered-list .card').forEach(card => {
+          let text = card.innerText.toLowerCase();
+          card.style.display = text.includes(q) ? 'flex' : 'none';
+       });
+    }
+
+    function getSkeleton() {
+        return `<div class="skeleton sk-card"></div><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div>`;
+    }
+
+    function loadData() {
+      if(isWorking) return;
+      
+      if(document.getElementById('pickup-list').innerHTML.trim() === "") document.getElementById('pickup-list').innerHTML = getSkeleton();
+      google.script.run
+        .withFailureHandler(err => {
+            document.getElementById('pickup-list').innerHTML = `<div class="empty-state"><span class="icon">⚠️</span><span class="text">Connection Error</span></div>`;
+        })
+        .withSuccessHandler(res => {
+          try {
+            if (!res.ok) {
+               showToast(res.message, false);
+               document.getElementById('pickup-list').innerHTML = `<div class="empty-state"><span class="icon">⚠️</span><span class="text">${res.message}</span></div>`;
+               return;
+            }
+            
+            const bPick = document.getElementById('badge-pick');
+            const bBag = document.getElementById('badge-bag');
+            if(res.toPickup.length > 0) { bPick.innerText = res.toPickup.length; bPick.style.display = 'block'; } else { bPick.style.display = 'none'; }
+            if(res.inBag.length > 0) { bBag.innerText = res.inBag.length; bBag.style.display = 'block'; } else { bBag.style.display = 'none'; }
+            
+            let tags = `<div class="h-tag ${activeFilter==='ALL' ? 'active' : ''}" id="filter-ALL" onclick="setFilter('ALL')">📍 All Stops <span>${res.toPickup.length}</span></div>`;
+            let safeSummary = res.summary || {};
+            for (const [loc, count] of Object.entries(safeSummary)) {
+                let safeLocId = loc.replace(/\s+/g, '');
+                let isActive = activeFilter === loc ? 'active' : '';
+                tags += `<div class="h-tag ${isActive}" id="filter-${safeLocId}" onclick="setFilter('${loc}')">${loc} <span>${count}</span></div>`;
+            }
+            document.getElementById('hosp-summary').innerHTML = tags;
+
+            // 🔹 1. PICKUPS TAB 🔹
+            let pickHtml = res.toPickup.length === 0 ? `<div class="empty-state"><span class="icon">🎉</span><span class="text">Route Clear!</span></div>` : "";
+            res.toPickup.forEach((r) => {
+              let borderCls = r.type === 'hospital_pickup' ? 'border-hosp' : (r.type === 'patient_pickup' ? 'border-pat' : 'border-tpa');
+              let headCls = r.type === 'hospital_pickup' ? 'bg-yellow' : (r.type === 'patient_pickup' ? 'bg-orange' : 'bg-purple');
+              let headTxt = r.type === 'hospital_pickup' ? 'HOSPITAL' : (r.type === 'patient_pickup' ? 'PATIENT' : 'OFFICE');
+              
+              let pagesHtml = r.type === 'hospital_pickup' ? `<input type="number" id="pg-${r.uid}" class="inp-pg" placeholder="PAGES">` : ``;
+
+              // 🔹 ADDRESS BOX ONLY SHOWS IF IT IS A PATIENT PICKUP 🔹
+              let addressHtml = "";
+              if (r.type === 'patient_pickup' && r.targetAddress && r.targetAddress !== "Call patient") {
+                  addressHtml = `<div style="font-size:11px; color:#0f766e; background:#f0fdfa; padding:6px; border-radius:4px; border:1px dashed #5eead4; margin-top:4px; margin-bottom:6px; word-wrap:break-word; line-height:1.4;">📍 <b>Address:</b> ${r.targetAddress}</div>`;
+              }
+
+              // 🔹 HOSPITAL LOCATION / NAVIGATION 🔹
+              let navHtml = "";
+              if (r.type === 'hospital_pickup' && r.loc) {
+                  navHtml = `<div style="margin-top:4px; margin-bottom:6px;"><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.loc)}" target="_blank" class="btn btn-blue btn-full" style="text-decoration:none; background:#0ea5e9;">🗺️ NAVIGATE TO HOSPITAL</a></div>`;
+              }
+
+              // 🔹 TPA FORM REMINDER FOR HOSPITAL PICKUPS 🔹
+              let tpaHtml = "";
+              if (r.type === 'hospital_pickup') {
+                  tpaHtml = `<div style="font-size:11px; color:#4338ca; background:#e0e7ff; padding:6px; border-radius:4px; border:1px dashed #818cf8; margin-top:4px; margin-bottom:6px; font-weight:bold;">📄 Collect Form: ${r.tpaName}</div>`;
+              }
+
+              let actionUi = "";
+              if (r.type === 'hospital_pickup' || r.type === 'patient_pickup') {
+                  actionUi = `
+                  <div class="c-action">
+                    ${pagesHtml}
+                    <input type="number" id="otp-${r.uid}" class="inp-otp" placeholder="PIN" style="min-width: 45px;">
+                    <button class="btn" onclick="verifyOtp('${r.caseId}', '${r.uid}', '${r.type}', this)">VERIFY</button>
+                    <button id="btn-dry-${r.uid}" class="btn" style="background:#ef4444; padding:4px 6px; font-size:8.5px; line-height:1.2; text-align:center;" onclick="this.style.display='none'; document.getElementById('dry-warn-${r.uid}').style.display='flex';">DOCS NOT<br>AVAILABLE</button>
+                  </div>
+                  
+                  <div id="dry-warn-${r.uid}" style="display:none; background:#fef2f2; border:1px solid #fca5a5; padding:8px; border-radius:6px; margin-top:6px; flex-direction:column; gap:8px;">
+                      <div style="font-size:10px; color:#b91c1c; font-weight:800; text-align:center;">MARK DOCS NOT READY? (CANCELS PICKUP)</div>
+                      <div style="display:flex; gap:6px;">
+                          <button class="btn btn-full" style="background:#ef4444; padding:8px;" onclick="execDryRun('${r.caseId}', this)">YES, CANCEL</button>
+                          <button class="btn btn-full" style="background:#94a3b8; padding:8px;" onclick="document.getElementById('dry-warn-${r.uid}').style.display='none'; document.getElementById('btn-dry-${r.uid}').style.display='flex';">KEEP IT</button>
+                      </div>
+                  </div>`;
+              } else if (r.type === 'office_collect') {
+                  actionUi = `
+                  <div class="c-action">
+                     <button class="btn btn-purple btn-full" onclick="collectOffice('${r.caseId}', this)">🎒 BAGGED ENVELOPE (TPA)</button>
+                  </div>`;
+              } else if (r.type === 'courier_upload') {
+                  actionUi = `
+                  <div class="c-action">
+                     <button class="btn btn-purple btn-full" onclick="collectCourier('${r.caseId}', this)">🎒 BAGGED ENVELOPE (COURIER)</button>
+                  </div>`;
+              }
+
+              let dispStyle = (activeFilter === 'ALL' || activeFilter === r.targetName) ? 'display:flex;' : 'display:none;';
+
+              pickHtml += `
+                <div class="card pickup-card ${borderCls}" data-loc="${r.targetName}" style="${dispStyle}">
+                  <div class="c-head"><span class="c-hosp">${r.targetName}</span> <span class="c-badge ${headCls}">${headTxt}</span></div>
+                  <div class="c-sub"><span><b>Pt:</b> ${r.patient}</span> <span><a href="tel:${r.phone}" style="color:#2563eb; text-decoration:none;">📞 ${r.phone}</a></span></div>
+                  <div class="c-sub"><span><b>Ref:</b> ${r.caseId}</span> <span>⏰ ${r.pickupTime}</span></div>
+                  ${addressHtml}
+                  ${navHtml}
+                  ${tpaHtml}
+                  ${actionUi}
+                </div>`;
+            });
+            document.getElementById('pickup-list').innerHTML = pickHtml;
+
+            // 🔹 2. CARGO (IN BAG) TAB 🔹
+            let bagHtml = res.inBag.length === 0 ? `<div class="empty-state"><span class="icon">🎒</span><span class="text">Bag is empty.</span></div>` : "";
+            res.inBag.forEach(r => {
+              if (r.type === "inbound_transit") {
+                  bagHtml += `
+                  <div class="card border-off">
+                    <div class="c-head"><span class="c-hosp">${r.targetName}</span> <span class="c-badge bg-blue">OFFICE DROP</span></div>
+                    <div class="c-sub"><span><b>Pt:</b> ${r.patient}</span> <span><b>Ref:</b> ${r.caseId}</span></div>
+                    <div class="c-sub" style="color:#3b82f6; font-weight:bold; margin-top:4px;">🏢 Hand envelope to Office Admin</div>
+                  </div>`;
+              } else if (r.type === "outbound_transit") {
+                  bagHtml += `
+                  <div class="card border-tpa">
+                    <div class="c-head"><span class="c-hosp">${r.targetName}</span> <span class="c-badge bg-green">TPA DROP</span></div>
+                    <div class="c-sub"><span><b>Pt:</b> ${r.patient}</span> <span><b>Ref:</b> ${r.caseId}</span></div>
+                    <div class="c-action">
+                       <label for="cam-${r.uid}" class="btn btn-blue btn-full">📸 SNAP ACKNOWLEDGEMENT</label>
+                       <input type="file" id="cam-${r.uid}" class="cam-input" accept="image/*" capture="environment" onchange="compressAndUpload('${r.caseId}', '${r.uid}', event)">
+                    </div>
+                    <div id="status-${r.uid}" style="text-align:center; font-size:11px; font-weight:bold; color:#2563eb; margin-top:5px; display:none;"></div>
+                  </div>`;
+              } else if (r.type === "courier_transit") {
+                  bagHtml += `
+                  <div class="card border-tpa">
+                    <div class="c-head"><span class="c-hosp">${r.targetName}</span> <span class="c-badge bg-green">COURIER DROP</span></div>
+                    <div class="c-sub"><span><b>Pt:</b> ${r.patient}</span> <span><b>Ref:</b> ${r.caseId}</span></div>
+                    <div class="c-action">
+                       <label for="cam-${r.uid}" class="btn btn-blue btn-full">📸 UPLOAD COURIER RECEIPT</label>
+                       <input type="file" id="cam-${r.uid}" class="cam-input" accept="image/*" capture="environment" onchange="compressAndUpload('${r.caseId}', '${r.uid}', event)">
+                    </div>
+                    <div id="status-${r.uid}" style="text-align:center; font-size:11px; font-weight:bold; color:#2563eb; margin-top:5px; display:none;"></div>
+                  </div>`;
+              }
+            });
+            document.getElementById('inventory-list').innerHTML = bagHtml;
+
+            // 🔹 3. DELIVERED TAB 🔹
+            let delHtml = res.delivered.length === 0 ? `<div class="empty-state"><span class="icon">✅</span><span class="text">No completed trips.</span></div>` : "";
+            res.delivered.forEach(r => {
+              delHtml += `
+                <div class="card border-del">
+                  <div class="c-head"><span class="c-hosp" style="color:#64748b;">${r.targetName}</span> <span class="c-badge bg-gray">DROPPED</span></div>
+                  <div class="c-sub"><span><b>Pt:</b> ${r.patient}</span> <span><b>Ref:</b> ${r.caseId}</span></div>
+                </div>`;
+              });
+            document.getElementById('delivered-list').innerHTML = delHtml;
+
+            // 🔹 RE-APPLY SEARCH/FILTER AFTER DATA LOADS
+            if (typeof filterRoute === "function") filterRoute();
+
+          } catch (renderError) {
+             document.getElementById('pickup-list').innerHTML = `<div class="empty-state"><span class="icon">⚠️</span><span class="text">Render Error</span></div>`;
+          }
+      }).getLogisticsData();
+    }
+
+    function verifyOtp(cid, uid, type, btn) {
+      const otp = document.getElementById(`otp-${uid}`).value;
+      if(otp.length !== 4) { showToast("Enter 4-digit PIN.", false); return; }
+      
+      let pages = "";
+      if(type === 'hospital_pickup') {
+          pages = document.getElementById(`pg-${uid}`).value;
+          if(!pages) { showToast("Enter total pages.", false); return; }
+      }
+      
+      btn.innerText = "WAIT";
+      isWorking = true;
+      google.script.run.withSuccessHandler(res => {
+        isWorking = false;
+        if(res.ok) { showToast("Verified! Item collected.", true); loadData(); } 
+        else { btn.innerText = "VERIFY"; showToast(res.message, false); } 
+      }).markPickupCollected(cid, otp, pages);
+    }
+    function execDryRun(cid, btn) {
+      btn.innerText = "WAIT...";
+      isWorking = true;
+      google.script.run.withSuccessHandler(res => {
+        isWorking = false;
+        if(res.ok) { showToast("Dry Run Logged. Hospital Notified.", true); loadData(); } 
+        else { btn.innerText = "YES, CANCEL"; showToast(res.message, false); } 
+      }).markPickupDryRun(cid);
+    }
+    function collectOffice(cid, btn) {
+      btn.innerText = "WAIT..."; isWorking = true;
+      google.script.run.withSuccessHandler(res => {
+        isWorking = false;
+        if(res.ok) { showToast("Envelope secured in Bag.", true); loadData(); } 
+        else { btn.innerText = "🎒 BAGGED ENVELOPE"; showToast(res.message, false); }
+      }).collectFromOfficeForTPA(cid);
+    }
+    function collectCourier(cid, btn) {
+      btn.innerText = "WAIT..."; isWorking = true;
+      google.script.run.withSuccessHandler(res => {
+        isWorking = false;
+        if(res.ok) { showToast("Courier Envelope secured in Bag.", true); loadData(); } 
+        else { btn.innerText = "🎒 BAGGED ENVELOPE (COURIER)"; showToast(res.message, false); }
+      }).collectOfficeForCourier(cid);
+    }
+
+    function compressAndUpload(cid, uid, event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const statusDiv = document.getElementById(`status-${uid}`);
+        statusDiv.style.display = "block";
+        statusDiv.innerText = "Compressing photo...";
+        isWorking = true;
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function (e) {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = function () {
+                const canvas = document.createElement("canvas");
+                const MAX_WIDTH = 1200; 
+                let width = img.width;
+                let height = img.height;
+
+                if (width > MAX_WIDTH) {
+                    height = Math.round((height * MAX_WIDTH) / width);
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+                const b64 = dataUrl.split(",")[1];
+                const fileData = { data: b64, name: file.name, mime: "image/jpeg" };
+
+                statusDiv.innerText = "Uploading to server...";
+
+                google.script.run.withSuccessHandler(res => {
+                    isWorking = false;
+                    if(res.ok) {
+                        statusDiv.style.color = "#16a34a";
+                        statusDiv.innerText = "✅ Uploaded! Drop-off complete.";
+                        showToast("Drop-off successful!", true);
+                        setTimeout(loadData, 1500);
+                    } else {
+                        statusDiv.style.color = "#ef4444";
+                        statusDiv.innerText = "❌ Upload Failed.";
+                        showToast(res.message, false);
+                    }
+                }).uploadTpaAcknowledgement(cid, fileData);
+            };
+        };
+    }
+    
+    // 🕒 --- ATTENDANCE & SHIFT CONTROLS --- 🕒
+    
+    function checkShiftStatus() {
+        if (!currentDriver) return;
+        google.script.run.withSuccessHandler(res => {
+            if (res.ok) updateShiftUI(res.status);
+        }).getShiftStatus(currentDriver);
+    }
+    
+    function handleShiftToggle() {
+        const btn = document.getElementById('shift-btn');
+        const currentAction = btn.innerText === "PUNCH IN" ? "IN" : "OUT";
+        
+        btn.innerText = "WAIT...";
+        btn.style.opacity = "0.7";
+        btn.disabled = true;
+        
+        google.script.run.withSuccessHandler(res => {
+            btn.style.opacity = "1";
+            btn.disabled = false;
+            if (res.ok) {
+                updateShiftUI(res.status);
+                showToast(`Successfully Punched ${res.status}`, true);
+            } else {
+                showToast(res.message || "Failed to log time.", false);
+                checkShiftStatus(); // Revert UI if failure
+            }
+        }).withFailureHandler(err => {
+            btn.style.opacity = "1";
+            btn.disabled = false;
+            showToast("Network Error", false);
+            checkShiftStatus();
+        }).toggleShift(currentDriver, currentAction);
+    }
+    
+    function updateShiftUI(status) {
+        const btn = document.getElementById('shift-btn');
+        if (status === "IN") {
+            btn.innerText = "PUNCH OUT";
+            btn.style.background = "#f59e0b"; // Orange to indicate active shift
+        } else {
+            btn.innerText = "PUNCH IN";
+            btn.style.background = "#ef4444"; // Red to prompt clock-in
+        }
+    }
+    
+  </script>
+</body>
+</html>

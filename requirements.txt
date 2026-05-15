@@ -1,0 +1,10 @@
+flask
+flask-cors
+python-dotenv
+requests
+gspread
+google-auth
+pandas
+pymupdf
+gunicorn
+psycopg2-binary

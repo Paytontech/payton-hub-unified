@@ -1,0 +1,2426 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Payton Hub">
+  <link rel="apple-touch-icon" href="https://drive.google.com/uc?export=view&id=1gtR-w8F5atDOI4VfWqKOKoey1lK0dMA6">
+<link rel="apple-touch-icon-precomposed" href="https://drive.google.com/uc?export=view&id=1gtR-w8F5atDOI4VfWqKOKoey1lK0dMA6">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* 🔹 INVISIBLE SCROLLBARS (KILL THE UGLY BAR LINES) 🔹 */
+    ::-webkit-scrollbar { width: 0px; height: 0px; background: transparent; display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+    /* 🔹 GLOBAL PALETTE 🔹 */
+    html, body { height: 100%; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; background: #f8fafc; overflow: hidden; }
+    
+    /* 🔹 TOAST NOTIFICATIONS 🔹 */
+    #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999999; display: flex; flex-direction: column; gap: 10px; }
+    .toast { min-width: 250px; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: slideIn 0.3s forwards; opacity: 0; transform: translateX(100%); background: #fff; color: #1e293b; border-left: 4px solid #cbd5e1; }
+    .toast.success { border-left-color: #10b981; }
+    .toast.error { border-left-color: #ef4444; }
+    @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+    
+    /* 🔹 TOP NAV BAR (SPLIT LOGOS) 🔹 */
+    .top-nav { height: 60px; background: #ffffff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.03); }
+    
+    .nav-left { display: flex; align-items: center; height: 100%; }
+    .hospital-logo { height: 100%; display: flex; align-items: center; }
+    .hospital-logo img { max-height: 40px; width: auto; max-width: 200px; object-fit: contain; display: none; }
+    .hosp-name-text { font-size: 14px; font-weight: 800; color: #0f172a; display: none; letter-spacing: 0.5px; text-transform: uppercase; }
+    
+    .nav-right { display: flex; align-items: center; height: 100%; }
+    .payton-logo img { height: 18px; width: auto; display: block; } 
+    .btn-logout { background: transparent; color: #64748b; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; padding: 0; display: flex; align-items: center; gap: 4px; }
+    .btn-logout:hover { color: #dc2626; text-decoration: underline; }
+
+    /* 🔹 ORIGINAL TABS AND WORKSPACE 🔹 */
+    .header-area { background: #ffffff; padding: 15px 20px 0px 20px; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 1000; overflow-x: auto; white-space: nowrap; }
+    .tabs { display: flex; gap: 10px; }
+    .tab { padding: 12px 18px; cursor: pointer; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; font-size: 13px; transition: 0.2s; border-radius: 8px 8px 0 0; }
+    .tab:hover { background: #f1f5f9; color: #334155; }
+    .tab.active { color: #0f766e; border-bottom-color: #0f766e; background: #f0fdfa; }
+    
+    .view-container { height: calc(100vh - 130px); overflow-y: auto; padding: 15px 20px; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+
+    /* 🔹 HIGH-DENSITY STICKY TABLE STYLING 🔹 */
+    .table-responsive { width: 100%; max-height: calc(100vh - 250px); overflow-y: auto; overflow-x: auto; position: relative; } 
+    table { width: 100%; min-width: 1050px; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+    
+    /* 1. STICKY HEADERS (Locks to the top) */
+    thead th { position: sticky; top: 0; background: #f8fafc; z-index: 100; padding: 10px 8px; border-bottom: 2px solid #cbd5e1; text-align: center; color: #475569; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 4px -2px rgba(0,0,0,0.1); }
+    
+    /* 2. COMPACT ROWS (Fits 8+ Rows perfectly) */
+    td { padding: 7px 6px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 11.5px; color: #1e293b; text-align: center; line-height: 1.3; }
+    .l-align { text-align: left !important; padding-left: 15px !important; }
+
+    /* Modern Search */
+    .search-wrapper { position: relative; width: 300px; margin-bottom: 10px; }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; width: 16px; height: 16px; pointer-events: none; }
+    .search-input { width: 100%; padding: 10px 12px 10px 36px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; background: #f8fafc; outline: none; }
+    .search-input:focus { border-color: #0f766e; background: #fff; }
+
+    /* Original Buttons */
+    .btn-primary { background: #0f766e; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 600; cursor: pointer; font-size: 11px; width: 100%; transition: 0.2s; }
+    .btn-primary:hover { background: #0d9488; }
+    
+    .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; font-weight: 600; cursor: pointer; font-size: 10px; width: 100%; transition: 0.2s; margin-top: 4px; }
+    .btn-secondary:hover { background: #e2e8f0; color: #0f172a; border-color: #94a3b8; }
+    
+    .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; padding: 6px 10px; font-weight: 600; cursor: pointer; font-size: 10px; width: 100%; transition: 0.2s; margin-top: 4px; }
+    .btn-danger:hover { background: #fee2e2; border-color: #f87171; }
+
+    /* Original Badges & Forms */
+    .badge { padding: 5px 8px; font-size: 10px; border-radius: 6px; font-weight: 700; width: 100%; display: inline-block; box-sizing: border-box; }
+    .bg-soft-green { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .bg-soft-blue { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .bg-soft-purple { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+    .bg-soft-orange { background: #ffedd5; color: #92400e; border: 1px solid #fde047; }
+    
+    .f-label { font-weight: 600; font-size: 10px; color: #64748b; display: block; margin-top: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .f-input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-family: inherit; font-size: 13px; color: #1e293b; background: #fff; transition: 0.2s; }
+    .f-input:focus { border-color: #0f766e; }
+    
+    .m-btn { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; background: #f8fafc; font-weight: 600; font-size: 12px; color: #475569; flex: 1; text-align: center; }
+    .m-btn.selected { border-color: #0f766e; background: #f0fdfa; color: #0f766e; box-shadow: inset 0 0 0 1px #0f766e; }
+    
+    .stack-date b { display: block; color: #1e293b; font-size: 12px; }
+    .stack-date small { display: block; color: #64748b; font-size: 11px; }
+    .line-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 15px; align-items: end; }
+    
+    .stat-pill { background: #fff; padding: 6px 16px; border-radius: 20px; border: 1px solid #cbd5e1; font-size: 11.5px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s; }
+    .stat-pill:hover { background: #f1f5f9; color: #334155; }
+    .stat-pill.active-f { background: #0f766e; color: white; border-color: #0f766e; box-shadow: 0 2px 4px rgba(15, 118, 110, 0.2); }
+
+    .timeline-item { padding: 8px 0; border-bottom: 1px dashed #cbd5e1; font-size: 12px; color: #334155; display: flex; align-items: flex-start; gap: 10px; }
+    .timeline-item:last-child { border-bottom: none; }
+
+    /* Skeleton Loader */
+    .skeleton { background: #f1f5f9; background-image: linear-gradient(90deg, #f1f5f9 0px, #e2e8f0 40px, #f1f5f9 80px); background-size: 600px; animation: shimmer 1.5s infinite linear; border-radius: 4px; }
+    .sk-text { height: 14px; margin-bottom: 8px; width: 80%; }
+    @keyframes shimmer { 0% { background-position: -300px; } 100% { background-position: 300px; } }
+    .chev { font-size:8px; margin-left:2px; }
+
+    /* ======================================================= */
+    /* 📱 GLOBAL MOBILE RESPONSIVE FIXES (ANDROID & IOS)       */
+    /* ======================================================= */
+    @media (max-width: 768px) {
+        /* General Padding Reduction */
+        .card { padding: 15px !important; }
+        .view-container { padding: 10px !important; }
+        
+        /* 1. Analytics Dashboard (v6) Fixes */
+        #v6 div[style*="grid-template-columns: repeat(3, 1fr)"],
+        #v6 div[style*="grid-template-columns: 1fr 1fr 1.5fr"] {
+            grid-template-columns: 1fr !important; /* Stack KPI tiles and Charts */
+        }
+        #v6 > div:first-child { flex-direction: column !important; align-items: flex-start !important; gap: 15px; }
+        #dash-time { width: 100% !important; }
+
+        /* 2. Intake Form (v3) Fixes */
+        #v3 div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }
+
+        /* 3. Tracking Tab (v4) Expanded Row Fixes */
+        .line-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; } /* 2x2 grid looks best for stats on mobile */
+        .expand-row .card > div[style*="display:flex"],
+        .expand-row .card > div[style*="display: flex"] { 
+            flex-direction: column !important; 
+            align-items: flex-start !important; 
+            gap: 15px !important;
+        }
+        /* Forces Discharge Setup inputs to stack neatly */
+        tr[id^="setup-"] .card > div[style*="display:flex"] > div { width: 100% !important; }
+        /* Fixes Reply Box side-by-side layout */
+        tr[id^="qrep-"] .card > div[style*="display:flex"] > div { flex: 1 1 100% !important; width: 100% !important; }
+
+        /* 4. Support Tickets (v5) Fixes */
+        #new-tkt-form div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* 5. Top Navbar - Compact Mobile Stacking */
+        .top-nav { 
+            height: auto !important; 
+            flex-direction: row !important; /* Keep items side-by-side */
+            flex-wrap: wrap !important;     /* But allow them to wrap if needed */
+            padding: 8px 15px !important; 
+            justify-content: space-between !important;
+            gap: 5px; 
+        }
+        
+        .nav-left { width: auto !important; order: 1; }
+        .nav-right { width: 100% !important; order: 3; justify-content: space-between !important; border-top: 1px solid #f1f5f9; padding-top: 8px; margin-top: 5px; }
+        
+        .payton-logo img { height: 12px !important; }
+        .btn-logout { font-size: 10px !important; }
+        
+        /* Ensure the search bar is full width but not overlapping */
+        .search-wrapper { width: 100% !important; margin-bottom: 15px !important; }
+        
+        .view-container { height: calc(100vh - 190px) !important;
+        }
+    }
+
+    /* 🔒 PERMANENT LOCK SCREEN OVERLAY */
+    #lock-screen {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: #ffffff;
+        z-index: 999999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 20px;
+        font-family: 'Poppins', sans-serif;
+    }
+    .lock-logo { max-height: 50px; width: auto; margin-bottom: 40px; }
+  </style>
+</head>
+<body>
+
+  <div id="lock-screen">
+    <img id="lockHospLogo" src="" class="lock-logo" style="display:none;">
+    <div id="lock-icon" style="font-size: 60px; margin-bottom: 20px;">👋</div>
+    <h1 id="lock-title" style="color: #005F6A; font-weight: 800; margin: 0; font-size: 28px;"></h1>
+    <p id="lock-msg" style="color: #64748b; font-size: 16px; margin: 20px 0 10px 0; line-height: 1.6; max-width: 450px;"></p>
+    <div style="color: #94a3b8; font-size: 18px; font-weight: 600; margin-top: 20px;">
+       Please refresh your browser to Sign In <span style="font-size: 24px;">↻</span>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <div id="modal-changepass" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:white; padding:30px; border-radius:12px; width:350px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+      <h3 style="margin-top:0; color:#0f766e; border-bottom:2px solid #5eead4; padding-bottom:10px;">Change Password</h3>
+      
+      <label style="font-size:10px; font-weight:700; color:#64748b; display:block; text-transform:uppercase; margin-bottom:4px;">Old Password</label>
+      <input type="password" id="cp-old" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:15px; box-sizing:border-box;">
+      
+      <label style="font-size:10px; font-weight:700; color:#64748b; display:block; text-transform:uppercase; margin-bottom:4px;">New Password</label>
+      <input type="password" id="cp-new" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:15px; box-sizing:border-box;">
+      <label style="font-size:10px; font-weight:700; color:#64748b; display:block; text-transform:uppercase; margin-bottom:4px;">Confirm New Password</label>
+      <input type="password" id="cp-confirm" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:15px; box-sizing:border-box;">
+      
+      <p id="cp-msg" style="font-size:12px; color:#ef4444; margin-bottom:15px; display:none;"></p>
+
+      <div style="display:flex; gap:10px;">
+        <button style="flex:1; padding:10px; background:#e2e8f0; color:#475569; border:none; border-radius:6px; cursor:pointer;" onclick="document.getElementById('modal-changepass').style.display='none'">Cancel</button>
+        <button id="cp-btn" style="flex:1; padding:10px; background:#0f766e; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;" onclick="submitPasswordChange()">Update ➔</button>
+      </div>
+    </div>
+  </div>
+<div id="modal-timeout" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:10001; align-items:center; justify-content:center; backdrop-filter: blur(8px);">
+    <div style="background:white; padding:40px; border-radius:16px; width:400px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+      <div style="font-size:40px; margin-bottom:20px;">⏳</div>
+      <h3 style="margin-top:0; color:#0f766e; font-size:22px;">Session Expiring Soon</h3>
+      <p style="color:#64748b; font-size:14px; line-height:1.6; margin-bottom:25px;">
+        You have been inactive for 25 minutes. You will be automatically locked out in:<br>
+        <b id="timer-display" style="font-size:24px; color:#ef4444;">02:00</b>
+      </p>
+      <button class="btn-primary" style="padding:14px; font-size:14px;" onclick="resetTimersFromUI()">Keep Me Signed In</button>
+    </div>
+  </div>
+  <header class="top-nav">
+    <div class="nav-left">
+      <div class="hospital-logo">
+        <img id="navHospLogo" src="" alt="Hospital Logo">
+      </div>
+      <div class="hosp-name-text" id="navHospName"></div>
+    </div>
+    
+    <div class="nav-right">
+      <div style="font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-right: 12px;">Powered By</div>
+      <div class="payton-logo">
+        <img src="https://cashlesseverywhere.com/images/logo/logo.png" alt="Payton">
+      </div>
+      <div style="width: 1px; height: 20px; background: #e2e8f0; margin: 0 20px;"></div>
+      
+      <button class="btn-logout" onclick="document.getElementById('modal-changepass').style.display='flex'">Change Password</button>
+      <div style="width: 1px; height: 15px; background: #e2e8f0; margin: 0 10px;"></div>
+      
+      <button class="btn-logout" id="btnLogout" onclick="processLogout()">Sign Out <span style="font-size:14px;">➔</span></button>
+    </div>
+  </header>
+
+  <div class="header-area">
+    <div class="tabs">
+      <div id="t1" class="tab" onclick="sw(1)">📖 Instructions</div>
+      <div id="t2" class="tab" onclick="sw(2)" style="display:flex; align-items:center; gap:6px;">
+          📢 Announcements 
+          <span id="ann-badge" style="background:#ef4444; color:white; font-size:9px; font-weight:800; padding:2px 6px; border-radius:10px; letter-spacing:0.5px; box-shadow: 0 2px 4px rgba(239,68,68,0.3);">NEW</span>
+      </div>
+      <div id="t3" class="tab active" onclick="sw(3)">1. Start Eligibility</div>
+      <div id="t4" class="tab" onclick="sw(4)">2. Tracking</div>
+      <div id="t5" class="tab" onclick="sw(5)" style="display:flex; align-items:center; gap:6px;">
+  🎫 Support Tickets
+  <span id="tkt-badge" style="display:none; background:#ef4444; color:white; font-size:10px; font-weight:800; padding:2px 6px; border-radius:10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">0</span>
+</div>
+      <div id="t6" class="tab" onclick="sw(6)">📊 Analytics Dashboard</div>
+    </div>
+  </div>
+ 
+  <div class="view-container">
+    <div id="v6" class="view" style="display:none; padding:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <h2 style="margin:0; color:#0f766e;">Hospital Executive Dashboard</h2>
+          <select id="dash-time" class="f-input" style="width:200px; margin:0; font-weight:bold; color:#1e293b;" onchange="renderCharts()">
+              <option value="30" selected>Last 30 Days</option>
+              <option value="7">Last 7 Days</option>
+              <option value="0">Today</option>
+              <option value="all">All Time</option>
+          </select>
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; margin-bottom:20px;">
+          <div style="background:white; padding:20px; border-radius:12px; border-top:5px solid #10b981; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+              <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">Total Settled Value (Actual Billed)</div>
+              <div id="kpi-val" style="font-size:24px; font-weight:900; color:#064e3b; margin-top:5px;">₹0</div>
+          </div>
+          <div style="background:white; padding:20px; border-radius:12px; border-top:5px solid #3b82f6; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+              <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">Avg AR Days (Approved)</div>
+              <div id="kpi-ar-app" style="font-size:24px; font-weight:900; color:#1e3a8a; margin-top:5px;">0 Days</div>
+          </div>
+          <div style="background:white; padding:20px; border-radius:12px; border-top:5px solid #ef4444; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+              <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">Avg AR Days (Rejected)</div>
+              <div id="kpi-ar-rej" style="font-size:24px; font-weight:900; color:#7f1d1d; margin-top:5px;">0 Days</div>
+          </div>
+          <div style="background:white; padding:20px; border-radius:12px; border-top:5px solid #f59e0b; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+              <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">Expected Pipeline (Approved)</div>
+              <div id="kpi-pipeline" style="font-size:24px; font-weight:900; color:#78350f; margin-top:5px;">₹0</div>
+          </div>
+          <div style="background:white; padding:20px; border-radius:12px; border-top:5px solid #8b5cf6; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+              <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">Total Settled Cases</div>
+              <div id="kpi-settled-count" style="font-size:24px; font-weight:900; color:#4c1d95; margin-top:5px;">0</div>
+          </div>
+          <div style="background:white; padding:20px; border-radius:12px; border-top:5px solid #14b8a6; box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+              <div style="font-size:10px; color:#64748b; font-weight:800; text-transform:uppercase;">Total Approved Cases</div>
+              <div id="kpi-approved-count" style="font-size:24px; font-weight:900; color:#0f766e; margin-top:5px;">0</div>
+          </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1.5fr; gap:15px;">
+          <div style="background:white; padding:15px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05); height:320px; position:relative;">
+              <canvas id="eligChart"></canvas>
+              <div id="win-rate-badge" style="position:absolute; bottom:20px; width:100%; text-align:center; display:none; left:0;"></div>
+          </div>
+          <div style="background:white; padding:15px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05); height:320px; position:relative;">
+              <canvas id="claimChart"></canvas>
+          </div>
+          <div style="background:#fef2f2; padding:15px; border-radius:12px; border:1px solid #fca5a5; height:320px; overflow-y:auto;">
+              <h3 style="margin:0 0 15px 0; font-size:14px; color:#b91c1c;">🔴 Action Required (<span id="q-count">0</span> Pending)</h3>
+              <div id="dash-queries"></div>
+          </div>
+      </div>
+  </div>
+    
+    <div id="v1" class="card" style="display:none; padding: 40px;; max-width: 850px; margin: auto;">
+       <h2 style="margin:0 0 10px 0; color:#0f172a">Welcome to the Payton Hub</h2>
+       <p style="color:#64748b; margin-bottom: 30px;">Follow these 4 simple steps to process your patients seamlessly.</p>
+       <div style="background:#f8fafc; border-left:4px solid #0f766e; padding:15px 20px; margin-bottom:15px; border-radius:0 8px 8px 0;">
+         <h4 style="margin:0 0 5px 0; color:#1e293b;">1. Create a New Intake</h4>
+         <p style="margin:0; color:#475569; font-size:14px; line-height:1.5;">Go to the <b>"1. Start Eligibility"</b> tab. Fill in the patient's medical details, approx cost, and upload their mandatory KYC and Policy documents.</p>
+       </div>
+       <div style="background:#f8fafc; border-left:4px solid #3b82f6; padding:15px 20px; margin-bottom:15px; border-radius:0 8px 8px 0;">
+         <h4 style="margin:0 0 5px 0; color:#1e293b;">2. Track Eligibility Status</h4>
+         <p style="margin:0; color:#475569; font-size:14px; line-height:1.5;">Switch to the <b>"2. Dashboard"</b> tab. Here you can see if the Payton team has Approved, Rejected, or requested more info for the patient.</p>
+       </div>
+       <div style="background:#f8fafc; border-left:4px solid #16a34a; padding:15px 20px; margin-bottom:15px; border-radius:0 8px 8px 0;">
+         <h4 style="margin:0 0 5px 0; color:#1e293b;">3. Set Up Discharge Details</h4>
+         <p style="margin:0; color:#475569; font-size:14px; line-height:1.5;">Once approved and the patient is discharged, click <b>"Setup Discharge"</b>. Enter the final billed amount, choose AutoPay or Full Pay, and attach the bank docs.</p>
+       </div>
+       <div style="background:#f8fafc; border-left:4px solid #8b5cf6; padding:15px 20px; margin-bottom:15px; border-radius:0 8px 8px 0;">
+         <h4 style="margin:0 0 5px 0; color:#1e293b;">4. Request Document Pickup</h4>
+         <p style="margin:0; color:#475569; font-size:14px; line-height:1.5;">Click <b>"Req Pickup"</b> when the physical file is ready. The system will generate a secure 4-digit PIN. <b>You must give this PIN to the logistics driver</b> when they arrive.</p>
+       </div>
+    </div>
+
+    <div id="v2" class="card" style="display:none; padding: 40px; max-width: 850px; margin: auto;">
+       <h2 style="margin:0 0 20px 0; color:#0f172a">📢 Latest Updates & Offers</h2>
+
+       <div style="background:#f0fdf4; border:1px solid #22c55e; border-left: 6px solid #16a34a; padding:20px; border-radius:8px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+         <h3 style="margin-top:0; margin-bottom:10px; color:#166534; display:flex; align-items:center; gap:10px;">
+            <span style="font-size: 22px;">💬</span> Payton WhatsApp Support is LIVE!
+         </h3>
+         <p style="color:#15803d; font-size:14px; margin:0 0 15px 0; line-height: 1.6;">
+            We are thrilled to launch our dedicated WhatsApp Support line for your patients: <b style="font-size:16px; background:#dcfce7; padding:2px 8px; border-radius:4px; border:1px solid #bbf7d0;">90084 91212</b>.
+         </p>
+         <ul style="color:#15803d; font-size:13px; line-height:1.6; padding-left:20px; margin-bottom:15px;">
+            <li style="margin-bottom:8px;"><b>Feedback & Callbacks:</b> Patients can now easily register their feedback or request a direct callback through WhatsApp.</li>
+            <li style="margin-bottom:8px;"><b>100% Tracked & Ticketed:</b> Every single interaction automatically creates a ticket in the Payton system. Every ticket is monitored, answered and tracked—nothing slips through the cracks.</li>
+         </ul>
+         <div style="background:#dcfce7; padding:12px 15px; border-radius:6px; font-size:12px; color:#166534; font-weight:600; border: 1px dashed #22c55e;">
+            🔜 <i>COMING SOON:</i> Patients will be able to instantly check their live claim status via this number!
+         </div>
+       </div>
+
+       <div style="background:#f8fafc; border:1px solid #cbd5e1; border-left: 6px solid #94a3b8; padding:20px; border-radius:8px; margin-bottom: 20px;">
+         <h3 style="margin-top:0; color:#334155; display:flex; align-items:center; gap:10px;">🚀 Live Logistics Tracking!</h3>
+         <p style="color:#475569; font-size:14px; margin:0; line-height: 1.5;">You can now track your physical documents in real-time from the Dashboard tab. Watch the status change from <b>Scheduled</b> to <b>With Driver</b>, and finally <b>Reached Payton</b> the exact moment our central office receives it.</p>
+       </div>
+    </div>
+
+    <div id="v3" class="card" style=" padding: 25px; max-width: 850px; margin: auto;">
+       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <h2 style="margin:0; color:#1e293b; font-size: 16px;">New Medical Intake</h2>
+          <label style="background:#f1f5f9; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:700; color:#0f766e; cursor:pointer;">
+             <input type="checkbox" id="isNewborn" onchange="toggleNewborn()"> [ Patient is a Minor / Newborn ]
+          </label>
+       </div>
+       
+       <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px 15px; border-radius:8px; margin-bottom:20px;">
+         <h4 style="margin:0 0 10px 0; color:#334155; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Mandatory Documents</h4>
+         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+           
+           <div>
+             <label class="f-label" style="margin-top:0">Aadhaar Doc *</label>
+             <input type="file" id="f_aad" class="f-input" accept="image/*, application/pdf" style="padding:6px 10px; font-size:11px; margin-bottom:0;">
+             <div style="text-align:right; margin-top:4px;">
+               <a href="javascript:void(0)" onclick="clearAadhaar()" style="color:#ef4444; font-size:10px; text-decoration:none; font-weight:600;">✕ Clear File & Data</a>
+             </div>
+             
+             <div id="aad-back-box" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed #cbd5e1;">
+                <label class="f-label" style="margin-top:0; color:#d97706;">Aadhaar Back Side (For Address) *</label>
+                <input type="file" id="f_aad_back" class="f-input" accept="image/*, application/pdf" style="padding:6px 10px; font-size:11px; margin-bottom:0; border:1px solid #d97706; background:#fffbeb;">
+             </div>
+           </div>
+
+           <div>
+             <label class="f-label" style="margin-top:0">Policy Doc *</label>
+             <input type="file" id="f_pol" class="f-input" accept="image/*, application/pdf" style="padding:6px 10px; font-size:11px; margin-bottom:0;">
+             <div style="text-align:right; margin-top:4px;">
+               <a href="javascript:void(0)" onclick="document.getElementById('f_pol').value=''" style="color:#ef4444; font-size:10px; text-decoration:none; font-weight:600;">✕ Clear File</a>
+             </div>
+           </div>
+           
+         </div>
+       </div>
+
+       <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:15px; margin-bottom:12px;">
+         <div>
+           <label class="f-label" id="nameLabel" style="margin-top:0;">Patient Name *</label>
+           <input type="text" id="pName" class="f-input">
+         </div>
+         <div>
+           <label class="f-label" style="margin-top:0;">Phone Number *</label>
+           <input type="text" id="pPhone" class="f-input">
+         </div>
+         <div>
+           <label class="f-label" style="margin-top:0;">Aadhaar (Last 4) *</label>
+           <input type="text" id="pAad4" class="f-input" maxlength="4" placeholder="Auto-filled">
+         </div>
+       </div>
+
+       <div style="display:grid; grid-template-columns: 1fr 1fr 1.5fr; gap:15px; margin-bottom:15px;">
+          <div>
+           <label class="f-label" style="margin-top:0;">Gender / Sex *</label>
+           <select id="pGender" class="f-input">
+              <option value="">Select</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+           </select>
+         </div>
+          <div><label class="f-label" style="margin-top:0;">Birth Date</label><input type="date" id="pDOB" class="f-input"></div>
+          <div><label class="f-label" style="margin-top:0;">Approx Cost (₹) *</label><input type="number" id="cost" class="f-input"></div>
+       </div>
+       
+       <div style="margin-bottom:15px;">
+           <label class="f-label" style="margin-top:0;">Full Address (Auto-filled via Aadhaar)</label>
+           <textarea id="pAddress" class="f-input" style="height:42px; resize:none;"></textarea>
+       </div>
+
+       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
+         <div><label class="f-label" style="margin-top:0;">Diagnosis *</label><input type="text" id="diag" class="f-input"></div>
+         <div><label class="f-label" style="margin-top:0;">Procedure Name *</label><input type="text" id="proc" class="f-input"></div>
+       </div>
+
+       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:12px;">
+           <div style="padding:12px 15px; border:1px dashed #cbd5e1; border-radius:8px; background:#f8fafc;">
+             <label class="f-label" style="margin-top:0">Additional KYC Documents / PAN Card</label>
+             <input type="file" id="f_addl" multiple class="f-input" accept="image/*, application/pdf" style="padding:6px 10px; font-size:11px; background:#fff; margin-bottom:0;">
+             <div style="text-align:right; margin-top:4px;"><a href="javascript:void(0)" onclick="document.getElementById('f_addl').value=''" style="color:#ef4444; font-size:10px; text-decoration:none; font-weight:600;">✕ Clear File</a></div>
+           </div>
+           <div style="padding:12px 15px; border:1px dashed #cbd5e1; border-radius:8px; background:#f8fafc;">
+             <label class="f-label" style="margin-top:0">Initial Assessment Document</label>
+             <input type="file" id="f_assess" class="f-input" accept="image/*, application/pdf" style="padding:6px 10px; font-size:11px; background:#fff; margin-bottom:0;">
+             <div style="text-align:right; margin-top:4px;"><a href="javascript:void(0)" onclick="document.getElementById('f_assess').value=''" style="color:#ef4444; font-size:10px; text-decoration:none; font-weight:600;">✕ Clear File</a></div>
+           </div>
+       </div>
+       
+       <button class="btn-primary" style="margin-top:15px; padding:12px; font-size:13px; border-radius:8px;" onclick="subReq()" id="sBtn">Submit Request to Payton</button>
+    </div>
+
+    <div id="v4" class="card" style="display:none; padding: 12px 15px;">
+      <div style="display:flex; gap:8px; margin-bottom: 10px; flex-wrap:wrap;">
+         <div class="stat-pill active-f" id="flt-all" onclick="applyFilt('all')">All Cases <span id="bdg-all" style="background:rgba(0,0,0,0.1); padding:2px 6px; border-radius:10px; margin-left:5px;">0</span></div>
+         <div class="stat-pill" id="flt-action" onclick="applyFilt('action')">🔴 Action Req <span id="bdg-action" style="background:rgba(0,0,0,0.1); padding:2px 6px; border-radius:10px; margin-left:5px;">0</span></div>
+         <div class="stat-pill" id="flt-setup" onclick="applyFilt('setup')">🟡 Payment Mode Pending <span id="bdg-setup" style="background:rgba(0,0,0,0.1); padding:2px 6px; border-radius:10px; margin-left:5px;">0</span></div>
+         
+         <div class="stat-pill" id="flt-docs_pending" onclick="applyFilt('docs_pending')">📄 Docs Not Sent <span id="bdg-docs_pending" style="background:rgba(0,0,0,0.1); padding:2px 6px; border-radius:10px; margin-left:5px;">0</span></div>
+         
+         <div class="stat-pill" id="flt-logistics" onclick="applyFilt('logistics')">🚚 Active Logistics <span id="bdg-logistics" style="background:rgba(0,0,0,0.1); padding:2px 6px; border-radius:10px; margin-left:5px;">0</span></div>
+         
+         <div class="stat-pill" id="flt-closed" onclick="applyFilt('closed')">✅ Settled & Closed <span id="bdg-closed" style="background:rgba(0,0,0,0.1); padding:2px 6px; border-radius:10px; margin-left:5px;">0</span></div>
+      </div>
+
+      <div class="search-wrapper">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by Patient Name or Case ID..." onkeyup="execSearch()">
+      </div>
+      
+      <div class="table-responsive">
+        <table>
+          <thead>
+             <tr>
+               <th style="width:80px">ID & Date</th>
+               <th style="width:90px">Case ID</th>
+               <th class="l-align" style="width:180px">Patient / Case Info</th>
+               <th style="width:110px">Eligibility / Status</th>
+               <th style="width:90px">Adm / Dis</th>
+               <th style="width:120px">Final Billing</th>
+               <th style="width:130px">Setup Discharge</th>
+               <th style="width:110px">Docs Logistics</th>
+               <th style="width:120px">Actions</th>
+             </tr>
+           </thead>
+          <tbody id="hBody"></tbody>
+        </table>
+      </div>
+      
+      <div id="pagination-controls" style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; margin-top:10px; border-top:1px solid #e2e8f0; background:#f8fafc; border-radius:0 0 12px 12px;">
+          <button id="btn-prev" class="btn-secondary" style="width:auto; padding:8px 20px;" onclick="changePage(-1)">⬅ Previous</button>
+          <span id="page-info" style="font-size:12px; font-weight:bold; color:#475569;">Page 1 of 1</span>
+          <button id="btn-next" class="btn-secondary" style="width:auto; padding:8px 20px;" onclick="changePage(1)">Next ➔</button>
+      </div>
+
+    </div>
+
+    <div id="v5" class="card" style="display:none; padding:20px;">
+       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <h2 style="margin:0; color:#0f172a;">🎫 Support Tickets</h2>
+          <button class="btn-primary" style="width:auto; padding:10px 20px;" onclick="openTicketForm()">+ Raise New Ticket</button>
+       </div>
+       
+       <div id="new-tkt-form" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; padding:20px; border-radius:8px; margin-bottom:20px;">
+    <b style="color:#0f766e; font-size:14px; margin-bottom:15px; display:block;">Create a New Support Ticket</b>
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
+        <div>
+            <label class="f-label">Related Patient / Case (Mandatory) *</label>
+            <select id="tkt-case" class="f-input" style="padding:10px;"></select>
+        </div>
+        <div>
+            <label class="f-label">Subject / Issue Summary *</label>
+            <input type="text" id="tkt-sub" class="f-input" placeholder="Brief summary of your issue">
+        </div>
+    </div>
+    
+    <div style="margin-bottom:5px;">
+        <label class="f-label">Detailed Message *</label>
+    </div>
+    <textarea id="tkt-msg" class="f-input" style="height:100px; resize:vertical; margin-bottom:15px;" placeholder="Describe your issue in detail here..."></textarea>
+    
+    <label class="f-label">Attach Files / Screenshots (Optional)</label>
+    <input type="file" id="tkt-files" multiple class="f-input" style="padding:8px; border-style:dashed; margin-bottom:15px;">
+
+    <div style="margin-top:15px; display:flex; gap:10px;">
+        <button class="btn-primary" style="width:auto; padding:10px 20px;" onclick="submitTicket()" id="btn-tkt">Submit Ticket</button>
+        <button class="btn-secondary" style="width:auto; padding:10px 20px;" onclick="document.getElementById('new-tkt-form').style.display='none'">Cancel</button>
+    </div>
+</div>
+
+       <div class="table-responsive">
+         <table>
+           <thead>
+             <tr>
+               <th style="width:120px">Ticket ID & Date</th>
+               <th style="width:160px">Patient & Case Info</th>
+               <th class="l-align" style="width:230px">Subject & Message</th>
+               <th style="width:90px">Status</th>
+               <th class="l-align" style="width:250px">Payton Reply</th>
+             </tr>
+           </thead>
+           <tbody id="tktBody"></tbody>
+         </table>
+       </div>
+    </div>
+
+  </div>
+
+  <script>
+    const token = "<?= token ?>";
+    let isWorking = false;
+    let activeFilter = 'all';
+    let activeRowId = null; 
+    let activeBtn = null;   
+
+    // 🔹 PAGINATION STATE 🔹
+    let currentPage = 1;
+    const rowsPerPage = 25;
+    let filteredData = [];
+
+    // 🕒 AUTO-EXPIRING "NEW" BADGE LOGIC (Disappears automatically after April 26, 2026)
+    document.addEventListener("DOMContentLoaded", () => {
+        const expireDate = new Date('2026-04-27T00:00:00'); 
+        if (new Date() > expireDate) {
+            const badge = document.getElementById('ann-badge');
+            if (badge) badge.style.display = 'none';
+        }
+    });
+    // 🔹 CHANGE PASSWORD LOGIC 🔹
+    function submitPasswordChange() {
+        const oldP = document.getElementById('cp-old').value;
+        const newP = document.getElementById('cp-new').value;
+        const confP = document.getElementById('cp-confirm').value;
+        const msg = document.getElementById('cp-msg');
+        const btn = document.getElementById('cp-btn');
+
+        if(!oldP || !newP || !confP) { msg.innerText = "All fields are required."; msg.style.display = "block"; return; }
+        if(newP.length < 6) { msg.innerText = "New password must be at least 6 characters."; msg.style.display = "block"; return; }
+        if(newP !== confP) { msg.innerText = "New passwords do not match!"; msg.style.display = "block"; return; }
+
+        msg.style.display = "none"; btn.innerText = "Updating..."; btn.disabled = true;
+
+        google.script.run.withSuccessHandler(res => {
+            if(res.ok) {
+                document.getElementById('cp-old').style.display = 'none';
+                document.getElementById('cp-new').style.display = 'none';
+                document.getElementById('cp-confirm').style.display = 'none';
+                document.querySelectorAll('#modal-changepass label').forEach(l => l.style.display = 'none');
+                
+                msg.style.color = "#0f766e";
+                msg.innerHTML = "<span style='font-size:40px; display:block; margin-bottom:10px;'>✅</span><b style='font-size:16px;'>Password Changed!</b><br><br><span style='color:#475569;'>Please sign in again with your new password.</span>";
+                msg.style.display = "block"; msg.style.textAlign = "center";
+                
+                const btnContainer = btn.parentElement;
+                btnContainer.innerHTML = `<button style="width:100%; padding:14px; background:#0f766e; color:white; border:none; border-radius:8px; font-weight:bold; font-size:14px; cursor:pointer; margin-top:10px;" onclick="processLogout()">Okay, Sign In ➔</button>`;
+            } else {
+                msg.style.color = "#ef4444"; msg.innerText = "⚠️ " + res.message; msg.style.display = "block";
+                btn.innerText = "Update ➔"; btn.disabled = false;
+            }
+        }).hospChangePassword(token, oldP, newP);
+    }
+
+    // 🔹 TOAST NOTIFICATIONS 🔹
+    function showMsg(msg, isSuccess) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${isSuccess ? 'success' : 'error'}`;
+      toast.innerHTML = `<span style="font-size:16px">${isSuccess ? '✅' : '⚠️'}</span> <span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s forwards reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // 🔹 HOSPITAL BRANDING 🔹
+    let globalAllowedMethods = "AutoPay, PDC, Full Pay";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      google.script.run.withSuccessHandler(res => {
+        if(res.ok) {
+          const nameEl = document.getElementById('navHospName');
+          const logoEl = document.getElementById('navHospLogo');
+          nameEl.innerText = res.name; 
+          if(res.methods) globalAllowedMethods = res.methods; 
+          
+          if(res.logo && res.logo.trim() !== "") {
+              logoEl.src = res.logo;
+              logoEl.style.display = "block";
+              // Also set the logo for the lock screen
+              const lockLogo = document.getElementById('lockHospLogo');
+              if(lockLogo) { lockLogo.src = res.logo; lockLogo.style.display = "block"; }
+          }
+          // 🚀 STARTUP LOAD: Load both tracking and ticket count immediately
+          load(); 
+          loadTickets(); 
+        }
+      }).getHospitalBrand(token);
+    });
+
+    function processLogout() {
+      // 1. Wipe local memory immediately
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // 2. Background server logout
+      try { if (typeof token !== 'undefined') google.script.run.logoutUser(token); } catch(err) {}
+
+      // 3. Trigger Lock Screen UI
+      document.getElementById('lock-icon').innerText = "👋";
+      document.getElementById('lock-title').innerText = "Securely Signed Out";
+      document.getElementById('lock-msg').innerText = "Thank You! Your session has been ended. To return to the portal, please Sign In.";
+      document.getElementById('lock-screen').style.display = 'flex';
+      
+      // 4. Hide all active app containers
+      document.querySelector('.top-nav').style.display = 'none';
+      document.querySelector('.header-area').style.display = 'none';
+      document.querySelector('.view-container').style.display = 'none';
+    }
+
+    function sw(n) { 
+      if(n==4) { load(); loadTickets(); } // This ensures the red badge updates whenever you go Home
+    if(n==5) loadTickets();
+      if (activeRowId) {
+         const openEl = document.getElementById(activeRowId);
+         if (openEl) openEl.style.display = 'none';
+         if (activeBtn) {
+            const chev = activeBtn.querySelector('.chev');
+            if(chev) chev.innerText = '▼';
+         }
+         activeRowId = null;
+         activeBtn = null;
+         isWorking = false; 
+      }
+
+      document.getElementById('v1').style.display=(n==1?'block':'none'); 
+      document.getElementById('v2').style.display=(n==2?'block':'none'); 
+      document.getElementById('v3').style.display=(n==3?'block':'none'); 
+      document.getElementById('v4').style.display=(n==4?'block':'none'); 
+      document.getElementById('v5').style.display=(n==5?'block':'none'); 
+      let v6 = document.getElementById('v6'); if(v6) v6.style.display=(n==6?'block':'none');
+      
+      document.getElementById('t1').classList.toggle('active', n==1); 
+      document.getElementById('t2').classList.toggle('active', n==2); 
+      document.getElementById('t3').classList.toggle('active', n==3);
+      document.getElementById('t4').classList.toggle('active', n==4); 
+      document.getElementById('t5').classList.toggle('active', n==5); 
+      let t6 = document.getElementById('t6'); if(t6) t6.classList.toggle('active', n==6);
+      
+      if(n==4) load(); 
+      if(n==5) { loadTickets(); load(); }
+      if(n==6) { load(); } // Ensures charts render when clicked
+    }
+    function tp(id, btnElement) { 
+      const e = document.getElementById(id);
+      if (!e) return;
+      
+      const isHidden = e.style.display === 'none';
+      const mainRow = e.previousElementSibling; // This grabs the patient data row
+      const grassGreen = "#f0fdf4"; // Very light grass green
+
+      if (isHidden) {
+        // 1. Close any other open rows first to keep it clean
+        if (activeRowId && activeRowId !== id) {
+           const openEl = document.getElementById(activeRowId);
+           if (openEl) {
+               openEl.style.display = 'none';
+               openEl.style.backgroundColor = ""; // Remove green from old expanded row
+               if (openEl.previousElementSibling) openEl.previousElementSibling.style.backgroundColor = ""; // Remove green from old main row
+           }
+           if (activeBtn) {
+              const chev = activeBtn.querySelector('.chev');
+              if (chev) chev.innerText = '▼';
+           }
+        }
+        
+        // 2. Open this row and turn the background green
+        e.style.display = 'table-row';
+        e.style.backgroundColor = grassGreen; 
+        if (mainRow) mainRow.style.backgroundColor = grassGreen;
+
+        isWorking = true; 
+        activeRowId = id;     
+        activeBtn = btnElement; 
+        
+        if(btnElement) {
+           const chev = btnElement.querySelector('.chev');
+           if(chev) chev.innerText = '▲';
+        }
+      } else {
+        // 3. Close the row and turn the background back to white
+        e.style.display = 'none';
+        e.style.backgroundColor = "";
+        if (mainRow) mainRow.style.backgroundColor = "";
+        
+        isWorking = false; 
+        activeRowId = null;
+        activeBtn = null;
+        
+        if(btnElement) {
+           const chev = btnElement.querySelector('.chev');
+           if(chev) chev.innerText = '▼';
+        }
+      } 
+    }
+
+    function applyFilt(fType) {
+        activeFilter = fType;
+        document.querySelectorAll('.stat-pill').forEach(el => el.classList.remove('active-f'));
+        document.getElementById('flt-' + fType).classList.add('active-f');
+        execSearch();
+    }
+
+    function execSearch() {
+        if (!window.hospMasterData) return;
+        const input = document.getElementById('searchInput');
+        if (!input) return; 
+        const query = input.value.toLowerCase().trim();
+        const isStrict = /^\d{6}-\d+$/.test(query);
+        let strictRegex = isStrict ? new RegExp("\\b" + query + "\\b", "i") : null;
+
+        // 🔹 FILTER DATA IN MEMORY (Lightning Fast)
+        filteredData = window.hospMasterData.filter(r => {
+            let matchesFilter = (activeFilter === 'all') || (activeFilter === r.fTag);
+            if (!matchesFilter) return false;
+
+            if (query === "") return true;
+            
+            let text = r.searchText || "";
+            if (isStrict) {
+                return strictRegex.test(text);
+            } else {
+                return text.includes(query);
+            }
+        });
+
+        // Reset state on new search
+        activeRowId = null; activeBtn = null; isWorking = false;
+        currentPage = 1;
+        renderPage();
+    }
+
+    // 🔹 PAGINATION RENDERER 🔹
+    function renderPage() {
+        const totalPages = Math.ceil(filteredData.length / rowsPerPage) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIdx = (currentPage - 1) * rowsPerPage;
+        const endIdx = startIdx + rowsPerPage;
+        const pageData = filteredData.slice(startIdx, endIdx);
+
+        // Map only 25 items to HTML
+        let htmlOut = pageData.map(r => r.htmlData).join("");
+        if (htmlOut === "") htmlOut = `<tr><td colspan="9" style="text-align:center; padding:30px; color:#64748b;">No cases found.</td></tr>`;
+        
+        document.getElementById('hBody').innerHTML = htmlOut;
+        
+        document.getElementById('page-info').innerText = `Page ${currentPage} of ${totalPages} (${filteredData.length} Cases)`;
+        document.getElementById('btn-prev').disabled = (currentPage === 1);
+        document.getElementById('btn-next').disabled = (currentPage === totalPages);
+        
+        document.getElementById('btn-prev').style.opacity = (currentPage === 1) ? '0.5' : '1';
+        document.getElementById('btn-next').style.opacity = (currentPage === totalPages) ? '0.5' : '1';
+    }
+
+    function changePage(dir) {
+        activeRowId = null; activeBtn = null; isWorking = false; // Close open rows on page turn
+        currentPage += dir;
+        renderPage();
+        document.querySelector('.view-container').scrollTop = 0; // Scroll back to top
+    }
+
+    function getSkeletonHtml(cols) {
+        let h = "";
+        for(let i=0; i<5; i++) {
+            h += `<tr>`;
+            for(let j=0; j<cols; j++) {
+                h += `<td><div class="skeleton sk-text"></div><div class="skeleton sk-text" style="width:60%"></div></td>`;
+            }
+            h += `</tr>`;
+        }
+        return h;
+    }
+
+    function load() {
+      if(isWorking) return; 
+      const tbody = document.getElementById('hBody');
+      if (tbody.innerHTML.trim() === "") tbody.innerHTML = getSkeletonHtml(9);
+      
+      google.script.run.withSuccessHandler(res => {
+        try {
+          if (!res || !res.list) return; 
+          
+          let tktSel = document.getElementById('tkt-case');
+          if(tktSel) {
+             let opts = `<option value="General Query / New Intake">-- General Query / New Intake --</option>`;
+      
+             let sortedList = [...res.list].sort((a, b) => a.pName.localeCompare(b.pName));
+             sortedList.forEach(c => {
+                let billedAmt = Number(c.billed) ? '₹' + Number(c.billed).toLocaleString() : '₹0';
+                let admDate = c.adm && c.adm !== '-' ? c.adm : 'N/A';
+                opts += `<option value="${c.caseId}">${c.pName} (${c.caseId}) | Adm: ${admDate} | Billed: ${billedAmt}</option>`;
+             });
+             tktSel.innerHTML = opts;
+          }
+          
+          let h = "";
+          let counts = { all: 0, action: 0, setup: 0, docs_pending: 0, logistics: 0, closed: 0 }; 
+          window.hospMasterData = res.list;
+          
+          res.list.forEach(r => {
+            const uid = r.uid;
+            const apStatusStr = String(r.apStatus || ""); 
+            const pickupStatusStr = String(r.pickupStatus || "");
+            const eligStr = String(r.eligibility || ""); // 🔹 Safety check for spaces
+
+            // 🔹 ORIGINAL 'FROZEN' LOGIC: Keeps "Setup Discharge" showing the correct status text!
+            const isFrozen = (
+                apStatusStr.includes("Initiated") || 
+                apStatusStr.includes("Completed") || 
+                apStatusStr.includes("Full Pay") || 
+                apStatusStr.includes("PDC") || 
+                apStatusStr.includes("Acknowledged") ||
+                apStatusStr.includes("Agreement")
+            );
+
+            // 🔹 NEW LOGIC: Strictly used for unlocking the Logistics Pickup button
+            const isPickupReady = (
+                apStatusStr.includes("Completed") || 
+                apStatusStr.includes("Full Pay") || 
+                apStatusStr.includes("PDC")
+            );
+
+            const isSettled = r.arStatus && (r.arStatus.includes('Settled') || r.arStatus.includes('Realized'));
+
+            // BULLETPROOF FILTER ROUTING
+            let fTag = "processing";
+            // 🛡️ SEVERED LINK: "Info Pending" from Eligibility no longer triggers Action Req!
+            let hasTrueProcessingQuery = r.isActionReq && (r.displayQueryText || "").includes("🔴 QUERY");
+            
+            if (hasTrueProcessingQuery) fTag = "action"; 
+            else if (r.isDenied || isSettled) fTag = "closed";
+            else if (!isFrozen) fTag = "setup"; // 🔹 FIX: Now pulls EVERYTHING strictly where Setup Discharge is pending!
+            else if (isFrozen && !isSettled && (pickupStatusStr.includes("Pending") || pickupStatusStr === "" || pickupStatusStr === "-")) fTag = "docs_pending"; 
+            else if (isFrozen && !isSettled && !pickupStatusStr.includes("Delivered")) fTag = "logistics";
+            
+            counts.all++;
+            if (counts[fTag] !== undefined) counts[fTag]++;
+
+            let rowBg = r.isActionReq ? "background-color: #fef2f2;" : "";
+           
+            let chatBtn = "";
+            // 🛠️ BUG FIX: Updated to match explicit Eligibility statuses
+            if ((r.eligChats && r.eligChats.length > 0) || r.eligibility.includes("Eligibility: Hospital Action Req") || r.eligibility.includes("Info Pending") || r.eligibility === 'New') {
+                let badge = r.unreadChat ? `<span class="pulse-dot" style="position:absolute; top:-4px; right:-4px; background-color:#ef4444; box-shadow: 0 0 0 0 rgba(239,68,68,0.7);"></span>` : '';
+                let btnClass = r.unreadChat ? 'btn-danger' : 'btn-secondary';
+                let btnStyle = r.unreadChat ? 'width:auto; padding:4px 10px; margin-top:5px; position:relative; animation: pulse-animation 2s infinite;' : 'width:auto; padding:4px 10px; margin-top:5px; position:relative; border:1px solid #0f766e; color:#0f766e; background:#f0fdfa;';
+                chatBtn = `<br><button class="${btnClass}" style="${btnStyle}" onclick="openEligChat('${r.caseId}')">💬 Q&A Chat ${badge}</button>`;
+            }
+            // 🤖 AI PR HOVER LOGIC
+            const aiHoverText = r.aiNote ? r.aiNote : "Awaiting insurance processing update...";
+            
+            let eligCell = `<div>
+                <b style="color:#0f766e;">${r.eligibility}</b>
+            </div>
+            <button class="btn-secondary" style="margin-top:4px;" onclick="tp('rem-${uid}', this)">View Remarks <span class="chev">▼</span></button>${chatBtn}`;
+            
+            let apChatBtn = "";
+            if (r.apChats && r.apChats.length > 0 || isFrozen) {
+                let badge = r.unreadApChat ? `<span class="pulse-dot" style="position:absolute; top:-4px; right:-4px; background-color:#ef4444; box-shadow: 0 0 0 0 rgba(239,68,68,0.7);"></span>` : '';
+                let btnClass = r.unreadApChat ? 'btn-danger' : 'btn-secondary';
+                let btnStyle = r.unreadApChat ? 'width:100%; padding:4px 10px; margin-top:5px; position:relative; animation: pulse-animation 2s infinite;' : 'width:100%; padding:4px 10px; margin-top:5px; position:relative; border:1px solid #0f766e; color:#0f766e; background:#f0fdfa;';
+                apChatBtn = `<button class="${btnClass}" style="${btnStyle}" onclick="openApChat('${r.caseId}')">💬 AutoPay Chat ${badge}</button>`;
+            }
+
+            let setupCell = "";
+            if (!isFrozen) {
+                if (eligStr.includes("Direct Documents")) {
+                    // 🔒 Disables the button and greys it out for Direct Documents
+                    setupCell = `<button class="btn-primary" style="background:#cbd5e1; color:#475569; cursor:not-allowed;" disabled title="Not applicable for Direct Documents">Setup Bypassed</button>${apChatBtn}`;
+                } else {
+                    setupCell = `<button class="btn-primary" onclick="tp('setup-${uid}')">Setup Discharge</button>${apChatBtn}`;
+                }
+            } else {
+                setupCell = `<div><div style="font-weight:900; color:#0f766e; font-size:13px;">₹${Number(r.autoAmt||0).toLocaleString()}</div><div class="badge bg-soft-orange" style="margin-top:4px;">${r.apStatus}</div></div>`;
+            }
+           
+            let actionCell = "";
+            if (r.isDenied) {
+                actionCell = `<b style="color:#1e293b;">CLAIM CLOSED</b><br><button class="btn-secondary" onclick="tp('clo-${uid}', this)">View Closure Details <span class="chev">▼</span></button>`; // 🔹 FIX: Now points to 'clo-' instead of 'rem-'
+            } else if (r.hospStage === "Query Responded") {
+                // ✨ FIX 3: NEW GREEN BADGE FOR RESPONDED QUERIES
+                actionCell = `<div style="font-size:11px; font-weight:800; color:#0f766e; margin-bottom:2px;">🟢 Query Responded</div><div style="font-size:9px; color:#475569; font-weight:600; margin-bottom:6px; line-height:1.2;">${r.displayQueryText}</div><button class="btn-secondary" style="border:1px solid #0f766e; color:#0f766e; background:#f0fdfa;" onclick="tp('qrep-${uid}', this)">Review & Reply <span class="chev">▼</span></button>`;
+            } else if (hasTrueProcessingQuery) {
+                actionCell = `<b style="color:#dc2626; font-size:11px;">🔴 ACTION REQ</b><br><div style="font-size:9.5px; color:#b91c1c; font-weight:bold; margin-bottom:4px; line-height:1.2;">${r.displayQueryText || 'Query Pending'}</div><button class="btn-danger" onclick="tp('qrep-${uid}', this)">Review & Reply <span class="chev">▼</span></button>`;
+            } else if (eligStr.includes("Eligibility: Hospital Action Req") || eligStr.includes("Info Pending")) {
+                actionCell = `<div style="font-size:11.5px; font-weight:700; color:#b45309; background:#fffbeb; padding:6px; border-radius:6px; border:1px solid #fcd34d; text-align:center;">⚠️ Eligibility Docs Pending</div><div style="font-size:9px; color:#92400e; margin-top:4px; text-align:center;">Please provide missing info.</div>`;
+            } else if (isSettled) {
+                actionCell = `<div class="badge bg-soft-green" style="margin-bottom:4px;">✅ Settled & Closed</div><button class="btn-secondary" onclick="tp('fin-${uid}', this)">View Breakup <span class="chev">▼</span></button>`;
+            } else {
+                actionCell = `<div title="${aiHoverText}" style="cursor:help;">
+                    <span style="font-size:9px; color:#94a3b8; display:block; margin-bottom:4px;">(Hover for details)</span>
+                    <div style="font-size:11.5px; font-weight:700; color:#475569; background:#f1f5f9; padding:6px; border-radius:6px; border:1px solid #cbd5e1; border-bottom:2px dotted #94a3b8;">${r.hospStage || 'Processing...'}</div>
+                </div>`;
+            }
+            
+            let logCell = "-";
+            if (pickupStatusStr === "Delivered to Office") {
+              logCell = `<div class="badge bg-soft-green" style="margin-bottom:4px;">🏢 Reached Payton</div><div style="font-size:10px; color:#065f46; font-weight:700; margin-bottom:4px;">${r.pickupTimeStr}</div>`;
+            } else if (pickupStatusStr.includes("Collected")) {
+              logCell = `<div class="badge bg-soft-blue" style="margin-bottom:4px;">🎒 Docs Picked Up</div><div style="font-size:10px; color:#1e40af; font-weight:700;">${r.pickupTimeStr}</div>`;
+            } else if (pickupStatusStr.includes("Pickup Requested")) {
+              let otp = pickupStatusStr.includes('|') ? pickupStatusStr.split('|')[1].trim() : "N/A";
+              logCell = `
+                <div class="badge bg-soft-purple" style="margin-bottom:4px;">🚚 Scheduled</div>
+                <div style="font-size:9.5px; color:#64748b; font-weight:600; margin-bottom:4px; line-height:1.1;">${r.pickupTimeStr}</div>
+                <div style="font-size:10.5px; font-weight:bold; background:#fff; border:1px solid #cbd5e1; border-radius:4px; padding:2px 4px; display:inline-block; color:#1e293b; margin-bottom: 6px;">PIN: <span style="color:#dc2626;">${otp}</span></div>
+                
+                <div id="cancel-warn-${uid}" style="display:none; background:#fef2f2; border:1px solid #fca5a5; padding:10px; border-radius:8px; margin-top:6px;">
+                    <p style="margin:0 0 10px 0; font-size:10px; color:#b91c1c; font-weight:bold; line-height:1.3;">⚠️ Cancel this pickup?<br>The driver will not come.</p>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-danger" style="flex:1; padding:6px; font-size:10px;" onclick="execCancelLog('${r.caseId}', '${uid}', this)">Yes, Cancel</button>
+                        <button class="btn-secondary" style="flex:1; padding:6px; font-size:10px;" onclick="document.getElementById('cancel-warn-${uid}').style.display='none'; document.getElementById('btn-cancel-${uid}').style.display='block';">Keep It</button>
+                    </div>
+                </div>
+                <button id="btn-cancel-${uid}" class="btn-danger" style="padding:6px 8px; font-size:10px; width:100%; margin-top:4px;" onclick="this.style.display='none'; document.getElementById('cancel-warn-${uid}').style.display='block';">❌ Cancel Pickup</button>
+              `;
+            } else if (isPickupReady && !isSettled && !r.isDenied) {
+              // Now relies on the STRICT pickup variable
+              logCell = `<button class="btn-secondary" onclick="tp('log-${uid}')">📤 Req Pickup</button>`;
+            } else if (isFrozen && !isPickupReady && !isSettled && !r.isDenied) {
+              // 💡 Logistics column stays informative while AutoPay is in progress
+              logCell = `<div style="background:#f0f9ff; border:1px solid #bae6fd; padding:6px; border-radius:6px; font-size:9px; color:#0369a1; line-height:1.2; text-align:center;">
+                           <b>Pickup Locked</b><br>
+                           Complete AutoPay to unlock.
+                         </div>`;
+            }
+
+            if (pickupStatusStr === "Delivered to Office" && !isSettled && !r.isDenied) {
+               logCell += `<button class="btn-secondary" style="font-size:9px; padding:4px; margin-bottom:4px;" onclick="tp('log-${uid}')">+ Send Extra Docs</button>`;
+            }
+
+            if (pickupStatusStr && pickupStatusStr !== "Pending" && pickupStatusStr !== "-") {
+               logCell += `<div style="margin-top:6px;"><button class="btn-secondary" style="border:none; background:transparent; text-decoration:underline; color:#0f766e; padding:2px;" onclick="tp('time-${uid}', this)">📜 View Timeline <span class="chev">▼</span></button></div>`;
+            }
+
+            let allowedBtns = "";
+            if (globalAllowedMethods.includes("AutoPay")) allowedBtns += `<button class="m-btn" onclick="selM('${uid}','AutoPay', this)">💳 AutoPay</button>`;
+            if (globalAllowedMethods.includes("PDC")) allowedBtns += `<button class="m-btn" onclick="selM('${uid}','PDC', this)">📝 PDC</button>`;
+            if (globalAllowedMethods.includes("Full Pay")) allowedBtns += `<button class="m-btn" onclick="selM('${uid}','Full Pay', this)">💰 Full Pay</button>`;
+            if (allowedBtns === "") allowedBtns = `<span style="color:#ef4444; font-size:12px; font-weight:bold;">No payment methods currently enabled.</span>`;
+            
+            // 🔹 PRE-CALCULATE HTML FOR PAGINATION
+            let rowHtml = `<tr class="h-row" data-uid="${uid}" data-ftag="${fTag}" style="${rowBg}">
+              <td><span style="color:#64748b; font-size:11px; font-weight:600;">${r.date}</span></td>
+              <td><b style="color:#0f766e; font-size:13px;">${r.caseId}</b></td>
+              <td class="l-align"><b style="font-size:13px;">${r.pName}</b> <button class="btn-secondary" style="width:auto; padding:2px 6px; font-size:9px;" onclick="tp('ext-${uid}', this)">Info <span class="chev">▼</span></button><br><small style="color:#64748b;">${r.phone}</small><br><small style="color:#64748b;">DX: ${r.diag}</small></td>
+              <td>${eligCell}</td>
+              <td class="stack-date"><b>${r.adm}</b><small>${r.dis}</small></td>
+              <td>
+                 <div style="font-size:9.5px; color:#64748b; line-height:1.2;">Hosp: <b>₹${Number(r.billed||0).toLocaleString()}</b></div>
+                 <div style="font-size:11px; color:#db2777; font-weight:800; margin-bottom:4px; line-height:1.2;">Actual: ₹${(Number(r.fb||0)+Number(r.ph||0)+Number(r.pp||0)).toLocaleString()}</div>
+                 <button class="btn-secondary" onclick="tp('m-${uid}', this)">Final Pay <span class="chev">▼</span></button>
+              </td>
+              <td>${setupCell}${apChatBtn}</td>
+              <td>${logCell}</td>
+              <td>${actionCell}</td>
+            </tr>
+            
+            <tr id="m-${uid}" style="display:none;" class="expand-row"><td colspan="9"><div class="card" style="padding:15px; text-align:left; border-left:4px solid #0f766e; display:flex; gap:20px;">
+                <div style="flex:1;">
+                    <h4 style="margin:0 0 10px 0; color:#0f766e; font-size:12px; text-transform:uppercase;">As Hospital Provided (AutoPay Setup)</h4>
+                    <div class="line-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+                        <div><small>Billed Amount</small><b>₹${Number(r.billed).toLocaleString()}</b></div>
+                        <div><small>Discount</small><b>₹${Number(r.disc).toLocaleString()}</b></div>
+                        <div><small>Advance</small><b>₹${Number(r.adv).toLocaleString()}</b></div>
+                        <div><small>Final Setup</small><b style="color:#0f766e; font-size:14px;">₹${Number(r.autoAmt).toLocaleString()}</b></div>
+                    </div>
+                </div>
+                <div style="width:1px; background:#cbd5e1;"></div>
+                <div style="flex:1;">
+                    <h4 style="margin:0 0 10px 0; color:#db2777; font-size:12px; text-transform:uppercase;">Actual Scrutiny Figures</h4>
+                    <div class="line-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+                        <div><small>Final Billed</small><b>₹${Number(r.fb||0).toLocaleString()}</b></div>
+                        <div><small>Pharmacy</small><b>₹${Number(r.ph||0).toLocaleString()}</b></div>
+                        <div><small>Pre & Post</small><b>₹${Number(r.pp||0).toLocaleString()}</b></div>
+                        <div><small>Actual Billed</small><b style="color:#db2777; font-size:14px;">₹${(Number(r.fb||0)+Number(r.ph||0)+Number(r.pp||0)).toLocaleString()}</b></div>
+                    </div>
+                </div>
+            </div></td></tr>
+
+            <tr id="setup-${uid}" style="display:none;" class="expand-row"><td colspan="9"><div class="card" style="padding:15px; text-align:left; border-left:4px solid #3b82f6;">
+                
+                <div style="display:flex; gap:15px; align-items:flex-end; margin-bottom:15px;">
+                   <div style="flex:2;">
+                      <label class="f-label">Select Settlement Method</label>
+                      <div style="display:flex; gap:10px;">${allowedBtns}</div>
+                   </div>
+                   <div style="flex:1; display:none;" id="box-payer-${uid}">
+                      <label class="f-label">Serv. Charge Payer</label>
+                      <select id="payer-${uid}" class="f-input"><option value="">Select Payer</option><option value="Hospital">Hospital</option><option value="Patient">Patient</option></select>
+                   </div>
+                   <div style="flex:1; display:none;" id="box-bank-${uid}">
+                      <label class="f-label" style="color:#ef4444;">Upload Bank Stmt / Cancel Cheque with Name Printed or Passbook Copy *</label>
+                      <input type="file" id="bank-f-${uid}" class="f-input" style="padding:7px; font-size:11px;" accept=".pdf, image/*" multiple>
+                      <div style="text-align:right; margin-top:4px;"><a href="javascript:void(0)" onclick="document.getElementById('bank-f-${uid}').value=''" style="color:#ef4444; font-size:10px; text-decoration:underline;">✕ Clear File</a></div>
+                   </div>
+                   <div style="flex:1; text-align:right;">
+                      <div style="font-size:10px; color:#64748b; font-weight:700;">FINAL SETUP AMOUNT</div>
+                      <div id="f-${uid}" style="font-size:20px; font-weight:900; color:#0f766e;">₹${Number(r.autoAmt||0).toLocaleString()}</div>
+                   </div>
+                </div>
+
+                <div style="display:flex; gap:15px; margin-bottom:15px;">
+                   <div style="flex:1;"><label class="f-label">Admission Date</label><input type="date" id="adm-${uid}" class="f-input" value="${r.adm!=='-'?r.adm.split('-').reverse().join('-'):''}"></div>
+                   <div style="flex:1;"><label class="f-label">Discharge Date</label><input type="date" id="dis-${uid}" class="f-input" value="${r.dis!=='-'?r.dis.split('-').reverse().join('-'):''}"></div>
+                   <div style="flex:1;"><label class="f-label">Actual Billed Amount</label><input type="number" id="b-${uid}" class="f-input" value="${r.billed}" oninput="cF('${uid}')"></div>
+                   <div style="flex:1;"><label class="f-label">Advance Paid</label><input type="number" id="a-${uid}" class="f-input" value="${r.adv}" oninput="cF('${uid}')"></div>
+                   <div style="flex:1;"><label class="f-label">Hospital Discount</label><input type="number" id="d-${uid}" class="f-input" value="${r.disc}" oninput="cF('${uid}')"></div>
+                </div>
+                
+                <div style="display:flex; gap:15px;">
+                   <div style="flex:1; background:#f8fafc; padding:10px; border-radius:8px; border:1px dashed #cbd5e1;">
+                       <label class="f-label" style="margin-top:0;">Upload Discharge Summary & Final Bill</label>
+                       <input type="file" id="dis-docs-${uid}" multiple class="f-input" accept="image/*, application/pdf" style="padding:6px; font-size:11px; background:white;">
+                       <div style="text-align:right; margin-top:4px;"><a href="javascript:void(0)" onclick="document.getElementById('dis-docs-${uid}').value=''" style="color:#ef4444; font-size:10px; text-decoration:underline;">✕ Clear File</a></div>
+                   </div>
+                </div>
+
+                <div id="setup-warn-wrap-${uid}" style="display:none; margin-top:15px; background:#fffbeb; border:1px solid #fcd34d; padding:12px; border-radius:8px;">
+    <div id="setup-warn-text-${uid}" style="font-size:11px; color:#b45309; font-weight:bold; margin-bottom:10px;"></div>
+    <div style="display:flex; gap:10px;">
+        <button class="btn-primary" style="background:#f59e0b; border:none;" onclick="initSet('${r.caseId}','${uid}', null, true)">Yes, Proceed Anyway</button>
+        <button class="btn-secondary" onclick="document.getElementById('setup-warn-wrap-${uid}').style.display='none'; document.getElementById('btn-setup-${uid}').style.display='block';">Cancel</button>
+    </div>
+</div>
+<button id="btn-setup-${uid}" class="btn-primary" style="margin-top:15px; padding:12px; font-size:13px;" onclick="initSet('${r.caseId}','${uid}',this, false)">Confirm Amount and Setup Discharge</button>
+            </div></td></tr>
+            
+            <tr id="ext-${uid}" style="display:none;" class="expand-row"><td colspan="9"><div class="card" style="padding:15px; text-align:left; border-left:4px solid #f59e0b;">
+                <h4 style="margin:0 0 10px 0; color:#b45309; font-size:12px; text-transform:uppercase;">Intake Details</h4>
+                <div class="line-grid">
+                    <div><small>Approx Cost</small><b>₹${Number(r.approxCost).toLocaleString()}</b></div>
+                    <div><small>Procedure</small><b>${r.procedure}</b></div>
+                    <div style="grid-column: span 2;"><small>Aadhaar (Last 4)</small><b>${r.caseId.split('-')[1]}</b></div>
+                </div>
+            </div></td></tr>
+            
+            <tr id="rem-${uid}" style="display:none;" class="expand-row"><td colspan="9"><div class="card" style="padding:15px; text-align:left; border-left:4px solid #8b5cf6;">
+                <h4 style="margin:0 0 10px 0; color:#6d28d9; font-size:12px; text-transform:uppercase;">Payton Remarks</h4>
+                <p style="margin:0; font-size:12px; color:#334155; white-space:pre-wrap;">${r.remarks}</p>
+            </div></td></tr>
+            
+            <tr id="clo-${uid}" style="display:none;" class="expand-row"><td colspan="9"><div class="card" style="padding:15px; text-align:left; border-left:4px solid #1e293b;">
+                <h4 style="margin:0 0 10px 0; color:#0f172a; font-size:12px; text-transform:uppercase;">Closure & Denial Notes</h4>
+                <p style="margin:0; font-size:12px; color:#334155; white-space:pre-wrap;">${r.denialReason || "No specific denial notes found in AR notes. Please check Payton Remarks."}</p>
+            </div></td></tr>
+
+            <tr id="time-${uid}" style="display:none;" class="expand-row"><td colspan="9"><div class="card" style="padding:15px; text-align:left; border-left:4px solid #3b82f6;">
+                <h4 style="margin:0 0 10px 0; color:#1d4ed8; font-size:12px; text-transform:uppercase;">Logistics Timeline</h4>
+                <div style="max-height:150px; overflow-y:auto; padding-right:10px;">
+                    ${r.logHistory ? r.logHistory.split('\\n').map(line => line.trim() ? '<div class="timeline-item">' + line + '</div>' : '').join('') : '<div style="font-size:12px; color:#64748b;">No logistics updates yet.</div>'}
+                </div>
+            </div></td></tr>
+
+            <tr id="log-${uid}" style="display:none;" class="expand-row"><td colspan="9"><div class="card" style="padding:15px; text-align:left; border-left:4px solid #8b5cf6;">
+                <h4 style="margin:0 0 10px 0; color:#6d28d9; font-size:12px; text-transform:uppercase;">Request Document Pickup</h4>
+                <p style="margin:0 0 15px 0; font-size:12px; color:#475569;">Ensure physical documents are ready. A secure PIN will be generated for the driver.</p>
+                
+                <div id="log-warn-${uid}" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; padding:10px; border-radius:8px; max-width:300px;">
+                    <p style="margin:0 0 10px 0; font-size:11px; color:#1e293b; font-weight:bold;">⚠️ Confirm Pickup Request?</p>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-primary" style="flex:1; padding:8px; font-size:11px;" onclick="subLog('${r.caseId}','${uid}',this)">Yes, Request</button>
+                        <button class="btn-secondary" style="flex:1; padding:8px; font-size:11px;" onclick="document.getElementById('log-warn-${uid}').style.display='none'; document.getElementById('log-init-${uid}').style.display='block';">Cancel</button>
+                    </div>
+                </div>
+
+                <button id="log-init-${uid}" class="btn-primary" style="width:auto; padding:10px 20px;" onclick="this.style.display='none'; document.getElementById('log-warn-${uid}').style.display='block';">Req Driver for Hard Papers</button>
+            </div></td></tr>
+            
+            <tr id="qrep-${uid}" style="display:none;" class="expand-row"><td colspan="9"><div class="card" style="padding:15px; text-align:left; border-left:4px solid #ef4444; background:#fef2f2;">
+    <h4 style="margin:0 0 10px 0; color:#b91c1c; font-size:12px; text-transform:uppercase;">Review & Reply to Query</h4>
+    <div style="background:white; padding:10px; border-radius:6px; border:1px solid #fca5a5; font-size:11px; color:#7f1d1d; white-space:pre-wrap; margin-bottom:15px; max-height:100px; overflow-y:auto;">${r.visibleQueries || "See details above."}</div>
+    
+    <div style="display:flex; gap:20px; align-items: stretch;">
+        <div style="flex: 0 0 50%;">
+            <label class="f-label" style="color:#b91c1c; margin-top:0;">Your Reply * (Mandatory)</label>
+            <textarea id="reply-txt-${uid}" class="f-input" style="height:150px; resize:none; margin-bottom:0;" 
+                placeholder="Type your response here..." oninput="valQ('${uid}')"></textarea>
+        </div>
+        
+        <div style="flex:1; display:flex; flex-direction:column; gap:12px; justify-content: flex-end;">
+            <div>
+                <label class="f-label" style="color:#b91c1c; margin-top:0;">Attach Supporting Documents * (Mandatory for Upload)</label>
+                <div style="position: relative; display: flex; align-items: center; background: white; border: 1px solid #cbd5e1; border-radius: 8px;">
+                    <input type="file" id="q-files-${uid}" 
+                        style="width: 100%; padding: 10px 35px 10px 10px; font-size: 11px; border: none; outline: none;" 
+                        multiple onchange="valQ('${uid}')">
+                    <button onclick="document.getElementById('q-files-${uid}').value=''; valQ('${uid}');" 
+                        style="position: absolute; right: 8px; background: #f1f5f9; border: none; color: #94a3b8; font-size: 16px; font-weight: bold; cursor: pointer; padding: 2px 6px; border-radius: 4px;" title="Clear Selection">✕</button>
+                </div>
+            </div>
+            
+            <button id="q-btn-up-${uid}" class="btn-danger" disabled 
+                style="background:#94a3b8; color:white; padding:14px; font-size:12px; border-radius: 8px; border:none; font-weight:bold; cursor:not-allowed;" 
+                onclick="submitHospReply('${r.caseId}','${uid}',this)">Upload & Submit Reply ➔</button>
+            
+            <div style="text-align:center; color:#94a3b8; font-weight:bold; font-size:10px;">— OR —</div>
+
+            <div id="p-warn-${uid}" style="display:none; background:#fff; border:1.5px solid #dc2626; padding:10px; border-radius:8px;">
+                <p style="margin:0 0 10px 0; font-size:11px; color:#b91c1c; font-weight:bold; line-height:1.3;">⚠️ SCHEDULE PHYSICAL PICKUP?<br>Are you sure? A secure PIN will be generated for the driver.</p>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-primary" style="flex:1; padding:8px; font-size:11px;" onclick="subLog('${r.caseId}','${uid}',this)">Yes, Request</button>
+                    <button class="btn-secondary" style="flex:1; padding:8px; font-size:11px;" onclick="document.getElementById('p-warn-${uid}').style.display='none'; document.getElementById('b-p-init-${uid}').style.display='block';">Cancel</button>
+                </div>
+            </div>
+
+            <button id="b-p-init-${uid}" class="btn-secondary" style="border:1.5px solid #dc2626; color:#dc2626; background:white; padding:12px; font-size:11px; border-radius: 8px; font-weight:bold;" 
+                onclick="this.style.display='none'; document.getElementById('p-warn-${uid}').style.display='block';">
+                🚚 Request Hard Copy Pickup
+            </button>
+        </div>
+    </div>
+</div></td></tr>
+            
+            <tr id="fin-${uid}" style="display:none;" class="expand-row"><td colspan="9"><div class="card" style="padding:15px; text-align:left; border-left:4px solid #10b981; display:flex; gap:20px;">
+                <div style="flex:1;">
+                    <h4 style="margin:0 0 10px 0; color:#047857; font-size:12px; text-transform:uppercase;">Settlement Breakup</h4>
+                    <div class="line-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div><small>Total Settled Amount</small><b style="color:#16a34a; font-size:14px;">₹${Number(r.settledAmt).toLocaleString()}</b></div>
+                        <div><small>Patient Responsibility</small><b style="color:#ef4444;">₹${Number(r.ptResp).toLocaleString()}</b></div>
+                        <div><small>Non-Medical Expenses</small><b style="color:#ef4444;">₹${Number(r.nme).toLocaleString()}</b></div>
+                        <div><small>Other Deductions</small><b style="color:#ef4444;">₹${Number(r.otherDed).toLocaleString()}</b></div>
+                    </div>
+                </div>
+            </div></td></tr>`;
+            
+            // 🔹 ATTACH TO DATA OBJECT FOR FAST SEARCH & RENDERING
+            r.htmlData = rowHtml;
+            r.fTag = fTag;
+            // Invisible trick: strip all HTML tags so the search engine works perfectly on the raw string
+            r.searchText = rowHtml.replace(/<[^>]*>?/gm, ' ').toLowerCase(); 
+                      
+          }); // ⬅️ THE LOOP MUST CLOSE HERE!
+
+          // Update Badges
+          document.getElementById('bdg-all').innerText = counts.all;
+          document.getElementById('bdg-action').innerText = counts.action;
+          document.getElementById('bdg-setup').innerText = counts.setup;
+          document.getElementById('bdg-docs_pending').innerText = counts.docs_pending; // ✨ NEW BADGE
+          document.getElementById('bdg-logistics').innerText = counts.logistics;
+          document.getElementById('bdg-closed').innerText = counts.closed;
+          
+          execSearch(); 
+          renderCharts(); // 🔹 SPRINT 3: DRAW THE DASHBOARD
+        } catch (err) {
+            document.getElementById('hBody').innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:#dc2626;"><b>Display Error:</b> ${err.message}</td></tr>`;
+        }
+      })
+      // ✨ FIX: ADDED FAILURE HANDLER TO PREVENT INFINITE SKELETON LOADING
+      .withFailureHandler(err => {
+          document.getElementById('hBody').innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:#dc2626;"><b>Backend System Error:</b> ${err.message}. Please refresh the page or contact support.</td></tr>`;
+      })
+      .hospitalGetRequests(token);
+    }
+
+    function openTicketForm() { document.getElementById('new-tkt-form').style.display = 'block'; }
+    
+    function loadTickets() {
+      const tktBody = document.getElementById('tktBody');
+      if (tktBody.innerHTML.trim() === "") tktBody.innerHTML = getSkeletonHtml(5);
+      
+      google.script.run.withSuccessHandler(res => {
+        if(res.ok) {
+           // 🏷️ UPDATE THE LIVE BADGE COUNT
+           const openCount = res.list.filter(t => t.status === 'Open').length;
+           const badge = document.getElementById('tkt-badge');
+           if (badge) {
+               badge.innerText = openCount;
+               badge.style.display = openCount > 0 ? 'inline-block' : 'none';
+           }
+
+           if(res.list.length === 0) {
+              tktBody.innerHTML = `<tr><td colspan="5" style="padding:40px; color:#64748b; text-align:center;">No support tickets raised yet.</td></tr>`;
+              return;
+           }
+           let h = "";
+           res.list.forEach(t => {
+              let isClosed = (t.status === 'Closed');
+              let statusBadge = isClosed ? `<span class="badge bg-soft-gray">Closed</span>` : `<span class="badge bg-soft-orange">Open</span>`;
+              
+              let logHtml = `<div style="font-size:10.5px; color:#475569; max-height:120px; overflow-y:auto; padding-right:5px;">`;
+              if (t.reply) {
+                  let entries = t.reply.split('\n\n');
+                  entries.forEach(entry => {
+                      let isPayton = entry.toLowerCase().includes('payton');
+                      let headerColor = isPayton ? '#059669' : '#2563eb';
+                      
+                      // 🛠️ FIX: Safely split the label by Newline instead of Colon to protect the timestamp!
+                      let breakIdx = entry.indexOf('\n');
+                      let label = breakIdx !== -1 ? entry.substring(0, breakIdx).replace(/:$/, '') : "Update";
+                      let content = breakIdx !== -1 ? entry.substring(breakIdx + 1).trim() : entry;
+                      
+                      logHtml += `<div style="margin-bottom:6px; padding-left:6px; border-left:2px solid ${headerColor};">
+                                      <b style="color:${headerColor}; font-size:9px; text-transform:uppercase;">${label}</b><br>${content}
+                                  </div>`;
+                  });
+              } else {
+                  logHtml += `<i style="color:#94a3b8;">Awaiting initial review...</i>`;
+              }
+              logHtml += `</div>`;
+
+              let actionUi = "";
+              if (!isClosed) {
+                  actionUi = `
+                  <div style="margin-top:8px; display:flex; gap:5px;">
+                      <textarea id="reply-input-${t.tktId}" placeholder="Post update..." style="flex:1; height:32px; font-size:10.5px; border:1px solid #cbd5e1; border-radius:4px; padding:4px; resize:none;"></textarea>
+                      <button onclick="sendFollowUp('${t.tktId}')" id="btn-send-${t.tktId}" style="width:60px; background:#1e293b; color:white; border:none; border-radius:4px; font-size:9px; font-weight:700; cursor:pointer;">POST</button>
+                  </div>`;
+              } else {
+                  actionUi = `
+                  <div id="reopen-wrap-${t.tktId}" style="margin-top:8px; text-align:right;">
+                      <a href="javascript:void(0)" onclick="reopenTkt('${t.tktId}')" style="color:#f59e0b; font-size:10px; font-weight:800; text-decoration:none;">↻ Reopen</a>
+                  </div>`;
+              }
+
+              let pNameDisplay = t.pName !== '-' ? t.pName : 'General Query';
+              
+              // 🛠️ FIX: Enlarge and Bold the Admission & Billed Amounts
+              let financialDisplay = t.pName !== '-' ? `Adm: <b style="font-size:11.5px; color:#0f172a;">${t.adm}</b> | Billed: <b style="font-size:11.5px; color:#0f766e;">₹${t.billed.toLocaleString()}</b>` : '';
+              
+              h += `<tr>
+                  <td style="vertical-align:top;"><b>${t.tktId}</b><br><span style="font-size:10px; color:#94a3b8;">${t.date}</span></td>
+                  <td style="vertical-align:top;"><b style="font-size:12px;">${pNameDisplay}</b><br><span style="font-size:10px; color:#2563eb; font-weight:600;">${t.caseId}</span><br><small style="color:#64748b; font-size:9px;">${financialDisplay}</small></td>
+                  <td class="l-align" style="vertical-align:top;">
+                      <b style="font-size:12px; color:#1e293b;">${t.subject}</b>
+                      <div style="font-size:11px; color:#475569; margin-top:4px; line-height:1.3; white-space:pre-wrap; border-top:1px solid #f1f5f9; padding-top:4px;">${t.message}</div>
+                  </td>
+                  <td style="vertical-align:top;">${statusBadge}</td>
+                  <td class="l-align" style="vertical-align:top; background:#fafafa;">${logHtml}${actionUi}</td>
+              </tr>`;
+           });
+           tktBody.innerHTML = h;
+        }
+      }).hospitalGetTickets(token);
+    }
+    // =======================================================
+    // 🎤 VOICE DICTATION & AUDIO RECORDER ENGINE
+    // =======================================================
+    let recognition;
+    let mediaRecorder;
+    let audioChunks = [];
+    let voiceAudioBase64 = null;
+    let isRecording = false;
+
+    async function toggleRecording(e) {
+        e.preventDefault();
+        const status = document.getElementById('recording-status');
+        if (isRecording) {
+            stopRecording();
+        } else {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                startRecording(stream);
+            } catch (err) {
+                // 🚫 NO POP-UPS: Update UI instead
+                status.innerText = "⚠️ Microphone Error: Click the 🔒 icon in the URL bar to enable.";
+                status.style.display = 'block';
+            }
+        }
+    }
+
+    function startRecording(stream) {
+        const lang = document.getElementById('voice-lang').value;
+        const btn = document.getElementById('btn-record');
+        const status = document.getElementById('recording-status');
+
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const reader = new FileReader();
+            reader.onloadend = () => { voiceAudioBase64 = reader.result.split(',')[1]; };
+            reader.readAsDataURL(audioBlob);
+            stream.getTracks().forEach(track => track.stop()); // Turn off mic light
+        };
+        mediaRecorder.start();
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = lang;
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.onresult = (event) => {
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) finalTranscript += event.results[i][0].transcript + ' ';
+            }
+            if (finalTranscript) document.getElementById('tkt-msg').value += finalTranscript;
+        };
+        recognition.start();
+        isRecording = true;
+        btn.innerText = "⏹️ Stop";
+        status.style.display = 'block';
+    }
+
+    function stopRecording() {
+        if (recognition) recognition.stop();
+        if (mediaRecorder) mediaRecorder.stop();
+        isRecording = false;
+        document.getElementById('btn-record').innerText = "🎤 Record";
+        document.getElementById('recording-status').style.display = 'none';
+    }
+    async function submitTicket() {
+      const subject = document.getElementById('tkt-sub').value;
+      const message = document.getElementById('tkt-msg').value;
+      const caseId = document.getElementById('tkt-case').value;
+      const fileInput = document.getElementById('tkt-files');
+      if(!subject.trim() || !message.trim()) return showMsg("Subject and Message are required.", false);
+
+      const btn = document.getElementById('btn-tkt');
+      btn.innerText = "Preparing..."; btn.disabled = true;
+      let filesData = [];
+      if (fileInput && fileInput.files.length > 0) {
+        btn.innerText = "Uploading...";
+        for (let f of fileInput.files) {
+          const b64 = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result.split(',')[1]); rd.readAsDataURL(f); });
+          filesData.push({data: b64, name: f.name, mime: f.type});
+        }
+      }
+      
+      // 🎤 Grab the Language and Audio File SAFELY
+      const langElement = document.getElementById('voice-lang');
+      const safeLang = langElement ? langElement.value : 'en-US';
+      
+      btn.innerText = "Submitting...";
+      google.script.run.withSuccessHandler(res => {
+         if(res && res.ok) {
+            voiceAudioBase64 = null; // Clear memory after success
+            showMsg("Ticket raised successfully!", true);
+            document.getElementById('tkt-sub').value = "";
+            document.getElementById('tkt-msg').value = "";
+            if(fileInput) fileInput.value = "";
+            document.getElementById('new-tkt-form').style.display = 'none';
+            loadTickets();
+         } else { showMsg(res ? res.message : "Unknown Error Occurred", false); }
+         btn.innerText = "Submit Ticket"; btn.disabled = false;
+      }).withFailureHandler(err => {
+         showMsg("System Error: " + err.message, false);
+         btn.innerText = "Submit Ticket"; btn.disabled = false;
+      }).hospitalCreateTicket(token, { 
+          subject: subject, 
+          message: message, 
+          caseId: caseId, 
+          files: filesData, 
+          voiceAudio: voiceAudioBase64, 
+          sourceLang: safeLang
+      });
+    }
+
+    async function submitHospReply(cid, uid, btn) {
+      const txt = document.getElementById(`reply-txt-${uid}`).value;
+      const fileInput = document.getElementById(`q-files-${uid}`);
+      let filesData = [];
+      if(!txt.trim() && (!fileInput || fileInput.files.length === 0)) return showMsg("Enter a reply or attach a file.", false);
+      btn.innerText = "Processing..."; btn.disabled = true;
+      if (fileInput && fileInput.files.length > 0) {
+        btn.innerText = "Uploading...";
+        for (let f of fileInput.files) {
+          const b64 = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result.split(',')[1]); rd.readAsDataURL(f); });
+          filesData.push({data: b64, name: f.name, mime: f.type});
+        }
+      }
+      btn.innerText = "Sending Reply...";
+      google.script.run.withSuccessHandler(res => {
+         if(res && res.ok) { 
+             showMsg("Reply Sent!", true); 
+             isWorking = false; 
+             activeRowId = null; activeBtn = null; // 🛠️ FIX: Auto-collapse panel
+             load(); 
+         }
+         else { showMsg(res ? res.message : "Unknown Error", false); btn.innerText = "Upload & Submit Reply"; btn.disabled = false; }
+      }).withFailureHandler((err) => {
+         showMsg("System Error: " + err.message, false);
+         btn.innerText = "Upload & Submit Reply"; btn.disabled = false; 
+      }).hospitalSubmitReply(token, cid, txt, filesData);
+    }
+    
+    function cF(u) { const b=Number(document.getElementById('b-'+u).value)||0, a=Number(document.getElementById('a-'+u).value)||0, d=Number(document.getElementById('d-'+u).value)||0;
+    document.getElementById('f-'+u).innerText = "₹" + (b - a - d).toLocaleString(); }
+    let aM = {};
+    function selM(u, m, b) { aM[u] = m; b.parentElement.querySelectorAll('button').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); document.getElementById(`box-payer-${u}`).style.display = (m==='Full Pay') ? 'block' : 'none'; document.getElementById(`box-bank-${u}`).style.display = (m==='AutoPay') ? 'block' : 'none'; }
+
+// 🔹 SPRINT 1: HIGH-SPEED INTAKE (Background Sync) 🔹
+async function subReq() {
+    const b = document.getElementById('sBtn');
+    
+    // 🚨 RESTORED SECURITY LOCKS: Check for Files & Valid Costs First!
+    const fileAad = document.getElementById('f_aad').files[0];
+    const filePol = document.getElementById('f_pol').files[0];
+    const costVal = Number(document.getElementById('cost').value) || 0;
+
+    if (!fileAad && !filePol) return showMsg("Aadhaar AND Policy Documents are missing!", false);
+    if (!fileAad) return showMsg("Aadhaar Document is specifically missing.", false);
+    if (!filePol) return showMsg("Policy Document is specifically missing.", false);
+    
+    if (costVal < 5000) return showMsg("Approx cost cannot be less than ₹5,000.", false);
+    if (costVal > 9900000) return showMsg("Approx cost cannot exceed ₹99 Lacs.", false);
+    if (costVal > 1000000) {
+        if(!confirm("⚠️ Warning: The Approx Cost is over ₹10 Lacs. Is this correct?")) return;
+    }
+
+    // 1. Gather Text Data
+    const formData = {
+        pName: document.getElementById('pName').value.trim(),
+        pPhone: document.getElementById('pPhone').value.trim(),
+        aad4: document.getElementById('pAad4') ? document.getElementById('pAad4').value.trim() : "",
+        gender: document.getElementById('pGender').value,
+        dob: document.getElementById('pDOB').value,
+        address: document.getElementById('pAddress').value,
+        diag: document.getElementById('diag').value.trim(),
+        procedure: document.getElementById('proc').value.trim(),
+        cost: costVal
+    };
+
+    // Strict Text Validation
+    if(!formData.pName || !formData.pPhone || !formData.procedure || !formData.aad4 || !document.getElementById('cost').value) return showMsg("Missing required fields. Check Name, Phone, Aadhaar, Procedure, and Cost.", false);
+    if(formData.pPhone.replace(/\D/g, '').length < 10) return showMsg("Please enter a valid 10-digit Phone Number.", false);
+    if(formData.aad4.length !== 4) return showMsg("Aadhaar must be exactly 4 digits.", false);
+    
+    b.disabled = true;
+    b.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Submitting...";
+    
+    // 2. Part A: Handshake (Create Case ID instantly)
+    google.script.run.withSuccessHandler((res) => {
+        if(!res.ok) { showMsg(res.message, false); b.disabled = false; b.innerHTML = "Submit Request to Payton"; return; }
+        
+        const caseId = res.caseId;
+        
+        // 3. Queue files for background sync
+        let uploadQueue = [];
+        const addFileToQueue = (elementId, prefix) => {
+            const el = document.getElementById(elementId);
+            if (el && el.files.length > 0) {
+                for(let i=0; i<el.files.length; i++) {
+                    uploadQueue.push({ file: el.files[i], namePrefix: prefix });
+                }
+            }
+        };
+
+        addFileToQueue('f_aad', 'AADHAAR_FRONT_');
+        addFileToQueue('f_aad_back', 'AADHAAR_BACK_');
+        addFileToQueue('f_pol', 'POLICY_');
+        addFileToQueue('f_assess', 'ASSESS_');
+        addFileToQueue('f_addl', 'ADDITIONAL_');
+
+        // 🚀 4. DETACHED BACKGROUND UPLOADER (Does not block the UI)
+        (async () => {
+            for (let item of uploadQueue) {
+                let fileDataToUpload;
+                let finalMimeType = item.file.type;
+                
+                if (item.file.type === "application/pdf") {
+                    fileDataToUpload = await new Promise(r => { 
+                        const rd = new FileReader(); 
+                        rd.onload = () => r(rd.result); 
+                        rd.readAsDataURL(item.file); 
+                    });
+                } else {
+                    fileDataToUpload = await shrinkImage(item.file);
+                    finalMimeType = 'image/jpeg';
+                }
+                
+                // Fire and forget to the server
+                google.script.run.uploadSingleFileSync(token, caseId, {
+                    data: fileDataToUpload,
+                    name: item.namePrefix + item.file.name,
+                    mime: finalMimeType
+                });
+            }
+        })();
+
+        // ⚡ 5. INSTANT UI ROUTING & CLEANUP
+        showMsg(`✅ Case ${caseId} Registered! Docs syncing in background.`, true);
+        b.innerHTML = "Submit Request to Payton";
+        b.disabled = false;
+        
+        // Wipe the form clean for the next patient
+        clearAadhaar();
+        if(document.getElementById('f_pol')) document.getElementById('f_pol').value = '';
+        if(document.getElementById('f_assess')) document.getElementById('f_assess').value = '';
+        if(document.getElementById('f_addl')) document.getElementById('f_addl').value = '';
+        document.getElementById('diag').value = '';
+        document.getElementById('proc').value = '';
+        document.getElementById('cost').value = '';
+        
+        // Immediately flip back to the Dashboard
+        sw(4); 
+        
+    }).createNewCaseOnly(token, formData);
+}
+
+// 🖼️ HELPER: THE INVISIBLE SHRINKER
+async function shrinkImage(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let w = img.width, h = img.height, max = 1600;
+                if (w > h && w > max) { h *= max / w; w = max; }
+                else if (h > max) { w *= max / h; h = max; }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', 0.8)); // 80% Quality
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+// =======================================================
+// 🧠 THE AADHAAR OCR BRAIN (Bulletproof Version)
+// =======================================================
+// =======================================================
+// 🧹 CLEARS BOTH SIDES AND THE AUTO-POPULATED DATA
+// =======================================================
+function clearAadhaar() {
+    document.getElementById('f_aad').value = '';
+    document.getElementById('f_aad').previousElementSibling.innerHTML = 'Aadhaar Doc *'; 
+    document.getElementById('f_aad_back').value = '';
+    document.getElementById('f_aad_back').previousElementSibling.innerHTML = 'Aadhaar Back Side (For Address) *'; 
+    document.getElementById('aad-back-box').style.display = 'none';
+
+    document.getElementById('pName').value = '';
+    document.getElementById('pPhone').value = '';
+    document.getElementById('pAad4').value = '';
+    document.getElementById('pGender').value = '';
+    document.getElementById('pDOB').value = '';
+    document.getElementById('pAddress').value = '';
+    showMsg("🧹 Aadhaar data cleared.", true);
+}
+
+// =======================================================
+// 🧠 BRAIN 1: FRONT SIDE (OR FULL PDF) SCANNER
+// =======================================================
+document.getElementById('f_aad').onchange = async function(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const fileInput = document.getElementById('f_aad');
+  const fLabel = fileInput.previousElementSibling;
+  const clearBtn = fileInput.nextElementSibling.querySelector('a');
+  
+  fileInput.style.opacity = "0.5"; fileInput.disabled = true;
+  if(clearBtn) clearBtn.style.display = "none";
+  fLabel.innerHTML = `Aadhaar Doc * <span style="color:#d97706; margin-left:8px; font-weight:800; font-size:10px;">⏳ Extracting text...</span>`;
+  showMsg("⏳ Started Aadhaar Scan...", true);
+  
+  let fileDataForOCR;
+  if (file.type === "application/pdf") { fileDataForOCR = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(file); }); } 
+  else { fileDataForOCR = await shrinkImage(file); }
+  
+  google.script.run.withSuccessHandler(res => {
+    fileInput.style.opacity = "1"; fileInput.disabled = false;
+    if(clearBtn) clearBtn.style.display = "inline";
+    
+    if(!res.ok) { 
+        fLabel.innerHTML = `Aadhaar Doc * <span style="color:#ef4444; margin-left:8px; font-weight:800; font-size:10px;">❌ Scan Failed</span>`;
+        return showMsg("OCR Failed: " + res.error, false); 
+    }
+    
+    let txt = res.text.replace(/[^\x20-\x7E\n\r]/g, ""); 
+    txt = txt.replace(/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g, ""); 
+    txt = txt.replace(/enrolment|enrollment/gi, "ENR"); 
+
+    const hasAadhaarNum = txt.match(/\d{4}[\s-]?\d{4}[\s-]?\d{4}/);
+    const hasDOB = txt.toLowerCase().includes("dob") || txt.toLowerCase().includes("year of birth") || txt.toLowerCase().includes("yob");
+    
+    if (!hasAadhaarNum && !hasDOB) {
+        fLabel.innerHTML = `Aadhaar Doc * <span style="color:#ef4444; margin-left:8px; font-weight:800; font-size:10px;">❌ Reconfirm document</span>`;
+        return showMsg("❌ Document not recognized as Aadhaar.", false);
+    }
+    
+    const lines = txt.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+    let extractedName = "";
+    
+    for (let i = 0; i < lines.length; i++) {
+        let lowerLine = lines[i].toLowerCase();
+        if ((lowerLine.includes("dob") || lowerLine.includes("birth") || lowerLine.includes("yob")) && !lowerLine.includes("issue")) {
+            const dateMatch = lines[i].match(/\d{2}[-/]\d{2}[-/]\d{4}/);
+            if (dateMatch) document.getElementById('pDOB').value = dateMatch[0].replace(/\//g, '-').split('-').reverse().join('-');
+            if (i > 0) {
+                for(let j = i-1; j >= 0; j--) {
+                    let possibleName = lines[j].replace(/[^a-zA-Z\s]/g, '').trim();
+                    if (possibleName.length > 2 && !possibleName.toLowerCase().includes("government") && !possibleName.toLowerCase().includes("india") && !possibleName.toLowerCase().includes("enr")) {
+                        extractedName = lines[j].replace(/^[^a-zA-Z]+/, '').trim(); break;
+                    }
+                }
+            } break;
+        }
+    }
+
+    if (extractedName) {
+       const isNB = document.getElementById('isNewborn').checked;
+       document.getElementById('pName').value = isNB ? "Baby of " + extractedName : extractedName;
+    }
+
+    const aadMatch = txt.match(/(?:^|[^\d])\d{4}[\s-]?\d{4}[\s-]?(\d{4})(?=[^\d]|$)/);
+    if (aadMatch && aadMatch[1]) document.getElementById('pAad4').value = aadMatch[1];
+
+    const phoneMatch = txt.match(/(?:^|[^\d])([6-9]\d{9})(?=[^\d]|$)/);
+    if (phoneMatch && phoneMatch[1]) document.getElementById('pPhone').value = phoneMatch[1];
+
+    if(txt.match(/\b(Male|Female)\b/i)) document.getElementById('pGender').value = txt.match(/\bMale\b/i) ? "Male" : "Female";
+    
+    // 🔄 SMART DUAL-SIDE CHECK (Did we find an address?)
+    let addrIndex = txt.toLowerCase().indexOf("address:"); 
+    if (addrIndex === -1) addrIndex = txt.toLowerCase().indexOf("address"); 
+    
+    let foundAddress = false;
+    if (addrIndex !== -1) {
+        let afterAddress = txt.substring(addrIndex + 7).replace(/^[:\s\n]+/, ''); 
+        let pinMatch = afterAddress.match(/\b\d{6}\b/);
+        if (pinMatch) {
+            let pinEnd = afterAddress.indexOf(pinMatch[0]) + 6;
+            document.getElementById('pAddress').value = afterAddress.substring(0, pinEnd).replace(/\n/g, ', ').replace(/\s+,/g, ',').replace(/,+/g, ',').trim();
+            foundAddress = true;
+        } else if (afterAddress.length > 10) {
+            document.getElementById('pAddress').value = afterAddress.substring(0, 100).replace(/\n/g, ', ').replace(/,+/g, ',').trim();
+            foundAddress = true;
+        }
+    }
+
+    // If no address, trigger the Back Side Box!
+    if (foundAddress) {
+        document.getElementById('aad-back-box').style.display = 'none';
+        fLabel.innerHTML = `Aadhaar Doc * <span style="color:#10b981; margin-left:8px; font-weight:800; font-size:10px;">✅ Fully Scanned</span>`;
+        showMsg("✅ Details Populated from Aadhaar", true);
+    } else {
+        document.getElementById('aad-back-box').style.display = 'block';
+        fLabel.innerHTML = `Aadhaar Front * <span style="color:#10b981; margin-left:8px; font-weight:800; font-size:10px;">✅ Front Scanned</span>`;
+        showMsg("⚠️ Front side detected. Please upload Back side for Address.", true);
+    }
+
+  }).performAadhaarOCR({data: fileDataForOCR, mime: file.type});
+};
+
+// =======================================================
+// 🧠 BRAIN 2: BACK SIDE (ADDRESS ONLY) SCANNER
+// =======================================================
+document.getElementById('f_aad_back').onchange = async function(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const fileInput = document.getElementById('f_aad_back');
+  const fLabel = fileInput.previousElementSibling;
+  
+  fileInput.style.opacity = "0.5"; fileInput.disabled = true;
+  fLabel.innerHTML = `Aadhaar Back Side * <span style="color:#d97706; margin-left:8px; font-weight:800; font-size:10px;">⏳ Verifying address...</span>`;
+  
+  let fileDataForOCR;
+  if (file.type === "application/pdf") { fileDataForOCR = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(file); }); } 
+  else { fileDataForOCR = await shrinkImage(file); }
+  
+  google.script.run.withSuccessHandler(res => {
+    fileInput.style.opacity = "1"; fileInput.disabled = false;
+    if(!res.ok) { 
+        fLabel.innerHTML = `Aadhaar Back Side * <span style="color:#ef4444; margin-left:8px; font-weight:800; font-size:10px;">❌ Scan Failed</span>`;
+        return showMsg("OCR Failed: " + res.error, false); 
+    }
+    
+    let txt = res.text.replace(/[^\x20-\x7E\n\r]/g, ""); 
+    
+    // Check if phone number is on the back
+    const phoneMatch = txt.match(/(?:^|[^\d])([6-9]\d{9})(?=[^\d]|$)/);
+    if (phoneMatch && phoneMatch[1] && !document.getElementById('pPhone').value) document.getElementById('pPhone').value = phoneMatch[1];
+
+    let addrIndex = txt.toLowerCase().indexOf("address:"); 
+    if (addrIndex === -1) addrIndex = txt.toLowerCase().indexOf("address"); 
+    
+    if (addrIndex !== -1) {
+        let afterAddress = txt.substring(addrIndex + 7).replace(/^[:\s\n]+/, ''); 
+        let pinMatch = afterAddress.match(/\b\d{6}\b/);
+        if (pinMatch) {
+            let pinEnd = afterAddress.indexOf(pinMatch[0]) + 6;
+            document.getElementById('pAddress').value = afterAddress.substring(0, pinEnd).replace(/\n/g, ', ').replace(/\s+,/g, ',').replace(/,+/g, ',').trim();
+        } else {
+            document.getElementById('pAddress').value = afterAddress.substring(0, 100).replace(/\n/g, ', ').replace(/,+/g, ',').trim();
+        }
+        fLabel.innerHTML = `Aadhaar Back Side * <span style="color:#10b981; margin-left:8px; font-weight:800; font-size:10px;">✅ Address Found</span>`;
+        showMsg("✅ Address Extracted from Back Side", true);
+    } else {
+        fLabel.innerHTML = `Aadhaar Back Side * <span style="color:#ef4444; margin-left:8px; font-weight:800; font-size:10px;">❌ No Address Found</span>`;
+        showMsg("❌ Could not find Address on this document.", false);
+    }
+  }).performAadhaarOCR({data: fileDataForOCR, mime: file.type});
+};
+
+    // 🛡️ SPRINT 1: DISCHARGE FORM VALIDATION 🔹
+    async function initSet(c, u, btn, force = false) { 
+      if(!aM[u]) return showMsg("Please select a method (AutoPay, PDC, or Full Pay)", false);
+      
+      const rawAdm = document.getElementById(`adm-${u}`).value;
+      const rawDis = document.getElementById(`dis-${u}`).value;
+      const valB = document.getElementById(`b-${u}`).value;
+      const valA = document.getElementById(`a-${u}`).value;
+      const valD = document.getElementById(`d-${u}`).value;
+
+      // 🛑 MANDATORY VALIDATION: Dates and Billed Amount
+      if (!rawAdm) return showMsg("Admission Date is mandatory.", false);
+      if (!rawDis) return showMsg("Discharge Date is mandatory.", false);
+      
+      if (valB === "") return showMsg("Actual Billed Amount is missing.", false);
+      const numB = Number(valB);
+      if (numB <= 0) return showMsg("Actual Billed Amount must be greater than 0.", false);
+
+      // Existing validation for Advance and Discount
+      if (valA === "") return showMsg("Advance Amount is missing (Enter 0 if none).", false);
+      if (valD === "") return showMsg("Discount Amount is missing (Enter 0 if none).", false);
+
+      const numA = Number(valA); const numD = Number(valD);
+      if (numB < 0 || numA < 0 || numD < 0) return showMsg("Amounts cannot be negative numbers.", false);
+      if (numB < (numA + numD)) return showMsg("Billed amount cannot be less than Advance + Discount.", false);
+      
+      const finalAmt = numB - numA - numD;
+      const admDate = new Date(rawAdm); 
+      const disDate = new Date(rawDis);
+      const today = new Date(); 
+      today.setHours(23, 59, 59, 999); 
+
+      if (disDate > today) return showMsg("Discharge Date cannot be in the future.", false);
+      if (disDate < admDate) return showMsg("Discharge Date cannot be before the Admission Date.", false);
+
+      const daysSinceAdm = (today - admDate) / (1000 * 60 * 60 * 24);
+      if (daysSinceAdm > 61) return showMsg("Admission Date cannot be more than 2 months old.", false);
+
+      // Inline Warning Logic
+      if (!force) {
+          let warnMsg = "";
+          if (finalAmt > 1000000) warnMsg = `⚠️ Warning: The Final Amount is over ₹10 Lacs (₹${finalAmt.toLocaleString()}). Is this correct?`;
+          else if (daysSinceAdm > 14) warnMsg = `⚠️ Warning: The Admission Date is more than two weeks old. Proceed?`;
+          
+          if (warnMsg) {
+              document.getElementById(`btn-setup-${u}`).style.display = 'none';
+              document.getElementById(`setup-warn-text-${u}`).innerText = warnMsg;
+              document.getElementById(`setup-warn-wrap-${u}`).style.display = 'block';
+              return; 
+          }
+      }
+
+      const wrap = document.getElementById(`setup-warn-wrap-${u}`);
+      if(wrap) wrap.style.display = 'none';
+      const mainBtn = document.getElementById(`btn-setup-${u}`);
+      if(mainBtn) { mainBtn.style.display = 'block'; mainBtn.innerText = "Updating...."; mainBtn.disabled = true; }
+
+      const data = { 
+          method: aM[u], 
+          adm: rawAdm, 
+          dis: rawDis, 
+          billed: numB, 
+          adv: numA, 
+          disc: numD, 
+          payer: document.getElementById(`payer-${u}`).value, 
+          files: [], 
+          dischFiles: [] 
+      };
+      
+      if(data.method === 'Full Pay' && !data.payer) {
+          if(mainBtn) { mainBtn.innerText = "Confirm Amount and Setup Discharge"; mainBtn.disabled = false; }
+          return showMsg("Please select service charge payer.", false);
+      }
+      
+      const fs = document.getElementById(`bank-f-${u}`).files;
+      const dischFs = document.getElementById(`dis-docs-${u}`).files; 
+      
+      if(data.method === 'AutoPay' && fs.length === 0) {
+          if(mainBtn) { mainBtn.innerText = "Confirm Amount and Setup Discharge"; mainBtn.disabled = false; }
+          return showMsg("Bank Statement is Mandatory for AutoPay.", false);
+      }
+
+      if(data.method === 'AutoPay') { 
+        for(let f of fs) { 
+            const b64 = await new Promise(r=>{const rd=new FileReader(); rd.onload=()=>r(rd.result.split(',')[1]); rd.readAsDataURL(f);});
+            data.files.push({data: b64, name: f.name, mime: f.type}); 
+        } 
+      } 
+      
+      for(let f of dischFs) {
+          const b64 = await new Promise(r=>{const rd=new FileReader(); rd.onload=()=>r(rd.result.split(',')[1]); rd.readAsDataURL(f);});
+          data.dischFiles.push({data: b64, name: 'DISCHARGE_' + f.name, mime: f.type});
+      }
+      
+      google.script.run.withSuccessHandler((res) => { 
+          if (res && res.ok) {
+            showMsg("Settlement Initiated!", true); 
+            isWorking = false; 
+            activeRowId = null; activeBtn = null;
+            load(); 
+          } else {
+            showMsg(res ? res.message : "Unknown Error", false);
+            if (mainBtn) { mainBtn.innerText = "Confirm Amount and Setup Discharge"; mainBtn.disabled = false; }
+          }
+      }).withFailureHandler((err) => {
+          showMsg("System Error: " + err.message, false);
+          if (mainBtn) { mainBtn.innerText = "Confirm Amount and Setup Discharge"; mainBtn.disabled = false; }
+      }).hospitalInitiateSettlement(token, c, data);
+    }
+
+    function subLog(c, u, btn) { 
+      btn.innerText = "Wait...";
+      btn.disabled = true;
+      google.script.run.withSuccessHandler((res) => { 
+        if (res && res.ok) { 
+            showMsg("Pickup Requested!", true); 
+            isWorking = false; 
+            activeRowId = null; activeBtn = null; // 🛠️ FIX: Auto-collapse panel
+            load(); 
+        } 
+        else { showMsg(res ? res.message : "Unknown Error", false); btn.innerText = "Req Driver for Hard Papers"; btn.disabled = false; }
+      }).withFailureHandler((err) => {
+         showMsg("System Error: " + err.message, false); btn.innerText = "Req Driver for Hard Papers"; btn.disabled = false;
+      }).hospitalRequestPickup(token, c);
+    }
+    
+    setInterval(function() { if(!isWorking) { if(document.getElementById('t4').classList.contains('active')) load(); if(document.getElementById('t5').classList.contains('active')) loadTickets(); } }, 30000);
+
+   let ch1 = null, ch2 = null;
+   function execCancelLog(c, u, btn) { 
+      btn.innerText = "Wait...";
+      btn.disabled = true;
+      google.script.run.withSuccessHandler((res) => { 
+        if (res && res.ok) { 
+            showMsg("Pickup Cancelled!", true); 
+            isWorking = false; 
+            activeRowId = null; activeBtn = null; // Auto-collapse the row
+            load(); 
+        } 
+        else { 
+            showMsg(res ? res.message : "Unknown Error", false); 
+            btn.innerText = "Yes, Cancel"; 
+            btn.disabled = false; 
+        }
+      }).hospitalCancelPickup(token, c);
+    }
+
+    function renderCharts() {
+        if (!window.hospMasterData) return;
+        const daysFilt = document.getElementById('dash-time').value;
+        const now = Date.now();
+        
+        let filtered = window.hospMasterData.filter(r => {
+            if (daysFilt === 'all') return true;
+            if (daysFilt === '0') {
+                const d = new Date(r.realReqDate); const t = new Date();
+                return d.getDate() === t.getDate() && d.getMonth() === t.getMonth() && d.getFullYear() === t.getFullYear();
+            }
+            const diff = (now - r.realReqDate) / (1000*60*60*24);
+            return diff <= parseInt(daysFilt);
+        });
+
+        let totalActualBilled = 0, arAppDays = 0, arAppCount = 0, arRejDays = 0, arRejCount = 0;
+        let pipelineAmt = 0, qCount = 0, settledCount = 0; // 🔹 Added Pipeline, Query, & Settled Count
+        let elig = { "Approved": 0, "Rejected / Closed": 0, "Pending": 0 };
+        let claimSt = {};
+        let qClaim = "", qIns = "", qFin = "";
+
+        filtered.forEach(r => {
+            // 🔹 KPI: Settled Value (Actual Scrutiny Billed: Final + Pharm + PrePost)
+            if (r.hospStage === "Claim Settled" || (r.arStatus && (r.arStatus.includes('Settled') || r.arStatus.includes('Realized')))) {
+                totalActualBilled += (Number(r.fb||0) + Number(r.ph||0) + Number(r.pp||0));
+                settledCount++; // 🔹 Count the case as settled!
+                
+                // 🔹 KPI: AR Days (Claim Submission to Settlement)
+                if (r.claimSub && r.setDate) {
+                    let daysDiff = (r.setDate - r.claimSub) / (1000*60*60*24);
+                    if (daysDiff < 0) daysDiff = 0;
+                    if (r.eligibility === "Approved") { arAppDays += daysDiff; arAppCount++; }
+                    else { arRejDays += daysDiff; arRejCount++; }
+                }
+            }
+
+            // 🔹 Chart: Eligibility Status
+            if (r.isDenied || r.eligibility === "Rejected") elig["Rejected / Closed"]++;
+            else if (r.eligibility === "Approved") elig["Approved"]++;
+            else elig["Pending"]++;
+
+            // 🔹 Chart: Claim Status Funnel
+            let stage = r.hospStage || "Processing";
+            claimSt[stage] = (claimSt[stage] || 0) + 1;
+
+            // 🔹 KPI: Expected Pipeline (Approved but NOT settled/denied)
+            if (r.eligibility === "Approved" && !r.isDenied && !r.arStatus.includes('Settled') && !r.arStatus.includes('Realized')) {
+                pipelineAmt += (Number(r.billed) || Number(r.approxCost) || 0);
+            }
+
+            // 🔹 Action Required Panel
+            if (r.isActionReq) {
+                qCount++; // 🔹 Count the query
+                let qCard = `<div style="background:white; padding:12px; border-left:4px solid #ef4444; border-radius:6px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="font-size:12px; color:#1e293b; font-weight:bold;">${r.caseId} - ${r.pName}</div>
+                    <div style="font-size:11px; color:#dc2626; font-weight:800; margin:4px 0;">${r.displayQueryText}</div>
+                    <div style="font-size:10px; cursor:pointer; color:#0f766e; text-decoration:underline;" onclick="sw(4); document.getElementById('searchInput').value='${r.caseId}'; execSearch();">View & Reply ➔</div>
+                </div>`;
+                
+                if (r.displayQueryText && r.displayQueryText.includes("Insurance")) qIns += qCard;
+                else if (r.displayQueryText && r.displayQueryText.includes("Settlement")) qFin += qCard;
+                else qClaim += qCard;
+            }
+        });
+
+        // 🔹 Inject KPIs
+        document.getElementById('kpi-pipeline').innerText = "₹" + pipelineAmt.toLocaleString('en-IN');
+        document.getElementById('q-count').innerText = qCount;
+        document.getElementById('kpi-val').innerText = "₹" + totalActualBilled.toLocaleString('en-IN');
+        document.getElementById('kpi-ar-app').innerText = arAppCount > 0 ? (arAppDays/arAppCount).toFixed(1) + " Days" : "N/A";
+        document.getElementById('kpi-ar-rej').innerText = arRejCount > 0 ? (arRejDays/arRejCount).toFixed(1) + " Days" : "N/A";
+        
+        // 🔹 Inject the New Tile Counts Safely
+        let finalSettledCount = claimSt["Claim Settled"] || 0; // Pull directly from the chart object
+        let finalApprovedCount = elig["Approved"] || 0; // Pull directly from the chart object
+        
+        document.getElementById('kpi-settled-count').innerText = finalSettledCount;
+        document.getElementById('kpi-approved-count').innerText = finalApprovedCount;
+
+        // 🔹 Inject Approval Win Rate
+        let totalDecided = elig["Approved"] + elig["Rejected / Closed"];
+        let winRateEl = document.getElementById('win-rate-badge');
+        if (winRateEl) {
+            if (totalDecided > 0) {
+                let wRate = Math.round((elig["Approved"] / totalDecided) * 100);
+                winRateEl.innerHTML = `<span style="background:#dcfce7; color:#166534; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:800; border:1px solid #bbf7d0; box-shadow:0 2px 4px rgba(0,0,0,0.05);">🎯 Approval Win Rate: ${wRate}%</span>`;
+                winRateEl.style.display = 'block';
+            } else {
+                winRateEl.style.display = 'none';
+            }
+        }
+
+        let finalQueriesHtml = "";
+        if (qClaim) finalQueriesHtml += `<div style="margin-bottom:15px;"><b style="font-size:12px; color:#b91c1c;">📋 Query Pending for Claim Submission</b><br>${qClaim}</div>`;
+        if (qIns) finalQueriesHtml += `<div style="margin-bottom:15px;"><b style="font-size:12px; color:#b91c1c;">🛡️ Query Pending from Insurance</b><br>${qIns}</div>`;
+        if (qFin) finalQueriesHtml += `<div style="margin-bottom:15px;"><b style="font-size:12px; color:#b91c1c;">💰 Query Pending for Settlement</b><br>${qFin}</div>`;
+        
+        if (!finalQueriesHtml) finalQueriesHtml = `<div style="padding:20px; text-align:center; color:#16a34a; font-weight:bold; font-size:14px;">✅ No pending queries!</div>`;
+        document.getElementById('dash-queries').innerHTML = finalQueriesHtml;
+
+        // 🔹 Render Charts
+        if (ch1) ch1.destroy(); if (ch2) ch2.destroy();
+        ch1 = new Chart(document.getElementById('eligChart'), {
+            type: 'doughnut', data: { labels: Object.keys(elig), datasets: [{ data: Object.values(elig), backgroundColor: ['#10b981', '#ef4444', '#f59e0b'] }] },
+            options: { responsive:true, maintainAspectRatio:false, plugins:{ title:{display:true, text:'Eligibility Status Breakdown', font:{size:14}} } }
+        });
+        ch2 = new Chart(document.getElementById('claimChart'), {
+            type: 'bar', data: { labels: Object.keys(claimSt), datasets: [{ label: 'Active Cases', data: Object.values(claimSt), backgroundColor: '#3b82f6', borderRadius:4 }] },
+            options: { responsive:true, maintainAspectRatio:false, plugins:{ title:{display:true, text:'Live Claim Operations', font:{size:14}}, legend:{display:false} } }
+        });
+    }
+/** 🔹 REAL-TIME QUERY VALIDATION **/
+    function valQ(uid) {
+        const txt = document.getElementById(`reply-txt-${uid}`).value.trim();
+        const files = document.getElementById(`q-files-${uid}`).files;
+        const btn = document.getElementById(`q-btn-up-${uid}`);
+        
+        // Button enables ONLY if Notes exist AND at least 1 file is selected
+        if (txt.length > 0 && files.length > 0) {
+            btn.disabled = false;
+            btn.style.background = "#dc2626";
+            btn.style.cursor = "pointer";
+        } else {
+            btn.disabled = true;
+            btn.style.background = "#94a3b8";
+            btn.style.cursor = "not-allowed";
+        }
+    }
+    
+    // =======================================================
+// 🧹 CLEARS BOTH SIDES AND THE AUTO-POPULATED DATA
+// =======================================================
+function clearAadhaar() {
+    document.getElementById('f_aad').value = '';
+    document.getElementById('f_aad').previousElementSibling.innerHTML = 'Aadhaar Doc *'; 
+    document.getElementById('f_aad_back').value = '';
+    document.getElementById('f_aad_back').previousElementSibling.innerHTML = 'Aadhaar Back Side (For Address) *'; 
+    document.getElementById('aad-back-box').style.display = 'none';
+
+    document.getElementById('pName').value = '';
+    document.getElementById('pPhone').value = '';
+    document.getElementById('pAad4').value = '';
+    document.getElementById('pGender').value = '';
+    document.getElementById('pDOB').value = '';
+    document.getElementById('pAddress').value = '';
+    showMsg("🧹 Aadhaar data cleared.", true);
+}
+// =======================================================
+// 🔄 REOPEN TICKET LOGIC
+// =======================================================
+function reopenTkt(tid) {
+    const wrap = document.getElementById('reopen-wrap-' + tid);
+    if(wrap) { 
+        wrap.innerHTML = "<div style='margin-top:10px; font-size:11px; color:#f59e0b; font-weight:bold;'><i class='fas fa-spinner fa-spin'></i> Reopening...</div>"; 
+    }
+    google.script.run.withSuccessHandler(res => {
+        if(res.ok) {
+            showMsg("✅ Ticket reopened successfully!", true);
+            if(typeof loadTickets === "function") loadTickets(); 
+        } else {
+            showMsg("❌ Failed: " + res.message, false);
+            if(typeof loadTickets === "function") loadTickets();
+        }
+    }).reopenTicket(token, tid);
+}
+// 🎫 SEND TICKET FOLLOW UP
+    function sendFollowUp(tktId) {
+        const input = document.getElementById(`reply-input-${tktId}`);
+        const msg = input.value.trim();
+        if (!msg) return showMsg("Please enter a message.", false);
+        
+        const btn = document.getElementById(`btn-send-${tktId}`);
+        btn.innerText = "Wait"; btn.disabled = true;
+        
+        google.script.run.withSuccessHandler(res => {
+            if (res.ok) { showMsg("Message posted!", true); loadTickets(); } 
+            else { showMsg(res.message, false); btn.innerText = "POST"; btn.disabled = false; }
+        }).sendTicketMessage(token, tktId, msg);
+    }
+    // ⏱️ STRICT AUTO-LOGOUT (Timestamp-Based for Background Tabs)
+    let warningTime = 0;
+    let expireTime = 0;
+    let sessionTick;
+
+    function startSessionTimer() {
+        const now = Date.now();
+        // Set exact timestamps based on the physical clock
+        warningTime = now + 1500000; // 25 minutes from now
+        expireTime = warningTime + 120000; // +2 minutes (27 mins total)
+
+        // Start the background checker if it isn't running
+        if (!sessionTick) {
+            sessionTick = setInterval(checkSessionClock, 1000);
+        }
+    }
+
+    function checkSessionClock() {
+        const now = Date.now();
+
+        // 1. If physical time is up, lock immediately (even if coming from another tab)
+        if (now >= expireTime) {
+            clearInterval(sessionTick);
+            sessionTick = null;
+            executeHardLogout();
+        } 
+        // 2. If we passed 25 mins, show warning & sync the live countdown
+        else if (now >= warningTime) {
+            document.getElementById('modal-timeout').style.display = 'flex';
+            let secondsLeft = Math.ceil((expireTime - now) / 1000);
+            updateCountdownText(secondsLeft);
+        }
+    }
+
+    function updateCountdownText(secondsLeft) {
+        const mins = Math.floor(secondsLeft / 60);
+        const secs = secondsLeft % 60;
+        document.getElementById('timer-display').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+    }
+
+    function resetTimersFromUI() {
+        document.getElementById('modal-timeout').style.display = 'none';
+        startSessionTimer(); // Pushes the expiration timestamps forward again
+    }
+
+    function executeHardLogout() {
+        // 1. Wipe memory
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // 2. Kill server session
+        google.script.run.logoutUser(token);
+        
+        // 3. Show Lock Screen for Timeout
+        document.getElementById('lock-icon').innerText = "⏳";
+        document.getElementById('lock-title').innerText = "Session Expired";
+        document.getElementById('lock-msg').innerText = "For your security, you have been logged out due to inactivity. To return to the portal, please Sign In.";
+        document.getElementById('lock-screen').style.display = 'flex';
+        
+        // 4. Hide all active app containers & close warning modal
+        document.getElementById('modal-timeout').style.display = 'none';
+        document.querySelector('.top-nav').style.display = 'none';
+        document.querySelector('.header-area').style.display = 'none';
+        document.querySelector('.view-container').style.display = 'none';
+    }
+
+    // Listeners: Only reset the timer if the warning modal is NOT showing
+    window.onload = startSessionTimer;
+    document.addEventListener('click', () => { 
+        if(document.getElementById('modal-timeout').style.display !== 'flex') startSessionTimer(); 
+    });
+    document.addEventListener('keypress', () => { 
+        if(document.getElementById('modal-timeout').style.display !== 'flex') startSessionTimer(); 
+    });
+    function openEligChat(cid) {
+      const row = window.hospMasterData.find(r => r.caseId === cid);
+      if(!row) return showMsg("Case data missing. Please refresh the page.", false);
+      
+      // 🏥 INJECT THE CONTEXT BANNER
+      document.getElementById('elig-chat-context').innerHTML = `
+          <div style="display:flex; justify-content:space-between;">
+              <span><b>👤 Patient:</b> <span style="color:#0f766e;">${row.pName}</span></span>
+              <span><b>💰 Approx:</b> ₹${Number(row.approxCost).toLocaleString()}</span>
+          </div>
+          <div style="font-size:11px; color:#64748b; margin-top:2px;"><b>🩺 Dx:</b> ${row.diag} <span style="margin:0 5px;color:#cbd5e1;">|</span> <b>🔪 Px:</b> ${row.procedure}</div>
+      `;
+
+      const box = document.getElementById('elig-chat-box');
+      if(!row.eligChats || row.eligChats.length === 0) {
+          box.innerHTML = `<div style="text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;">No messages yet. Type below to ask Payton a question or share documents.</div>`;
+      } else {
+          box.innerHTML = row.eligChats.map(c => {
+              let isMe = c.sender === 'HOSPITAL';
+              let align = isMe ? 'align-self:flex-end; background:#dcfce7; border:1px solid #16a34a;' : 'align-self:flex-start; background:#fff; border:1px solid #cbd5e1;';
+              let textColor = isMe ? '#166534' : '#1e293b';
+              let senderTag = isMe ? 'Hospital' : 'Payton';
+              
+              let formattedMsg = c.msg.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:#2563eb; text-decoration:underline; word-break:break-all;">$1</a>');
+              
+              return `<div style="max-width:85%; padding:10px 12px; border-radius:8px; ${align} box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                  <div style="font-size:10px; font-weight:800; color:#94a3b8; margin-bottom:4px;">${senderTag}</div>
+                  <div style="font-size:13px; color:${textColor}; line-height:1.4; white-space:pre-wrap;">${formattedMsg}</div>
+                  <div style="font-size:9px; color:#64748b; margin-top:6px; text-align:${isMe?'right':'left'};">${c.time}</div>
+              </div>`;
+          }).join('');
+      }
+
+      let inputArea = document.getElementById('elig-chat-input-area');
+      if (row.chatStatus === 'Closed') {
+          inputArea.style.flexDirection = 'column';
+          inputArea.innerHTML = `
+            <div style="text-align:center; color:#ef4444; font-weight:bold; font-size:12px; margin-bottom:10px;">🔒 Chat Closed by Payton.</div>
+            <button class="btn-primary" style="background:#f59e0b; border:none; width:100%; padding:10px 15px;" onclick="reopenEligChat('${cid}', this)">↻ Reopen Chat</button>
+          `;
+      } else {
+          inputArea.innerHTML = `
+            <input type="hidden" id="elig-chat-cid" value="${cid}">
+            <div style="display:flex; gap:10px; align-items:center; background:#f1f5f9; padding:8px; border-radius:6px; border:1px solid #cbd5e1;">
+                <label style="font-size:11px; font-weight:bold; color:#475569; margin:0; flex-shrink:0;">📎 Attach Docs:</label>
+                <input type="file" id="elig-chat-files" multiple class="f-input" style="padding:4px; font-size:10px; margin:0; flex:1; border:none; background:transparent;">
+                <button onclick="document.getElementById('elig-chat-files').value='';" style="background:none; border:none; color:#ef4444; font-size:12px; cursor:pointer; padding:0 5px;" title="Clear Files">✖</button>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="elig-chat-input" class="f-input" style="margin:0; flex:1;" placeholder="Type your reply or document details here... *">
+                <button class="btn-primary" style="width:auto; padding:10px 20px;" onclick="sendEligChat(this)">Send ➔</button>
+            </div>
+            <div style="font-size:10px; color:#94a3b8; text-align:center; font-weight:bold;">⚠️ A text message is mandatory, even when uploading documents.</div>
+          `;
+      }
+
+      document.getElementById('modal-elig-chat').style.display = 'flex';
+      setTimeout(() => box.scrollTop = box.scrollHeight, 100);
+  }
+
+  async function sendEligChat(btn) {
+      const cid = document.getElementById('elig-chat-cid').value;
+      const msg = document.getElementById('elig-chat-input').value.trim();
+      const fileInput = document.getElementById('elig-chat-files');
+      
+      if(!msg) return showMsg("A text message is mandatory to reply.", false);
+      
+      btn.innerText = "⏳"; btn.disabled = true;
+      
+      try {
+          let filesData = [];
+          if (fileInput && fileInput.files.length > 0) {
+              btn.innerText = "Reading Files...";
+              for (let f of fileInput.files) {
+                  if (f.size > 15 * 1024 * 1024) { 
+                      btn.innerText = "Send ➔"; btn.disabled = false;
+                      return showMsg("File too large! Please keep uploads under 15MB.", false);
+                  }
+                  const b64 = await new Promise((resolve, reject) => { 
+                      const rd = new FileReader(); 
+                      rd.onload = () => resolve(rd.result.split(',')[1]); 
+                      rd.onerror = () => reject(new Error("File reading failed"));
+                      rd.readAsDataURL(f); 
+                  });
+                  filesData.push({data: b64, name: f.name, mime: f.type});
+              }
+          }
+          
+          btn.innerText = "Sending...";
+          google.script.run.withSuccessHandler(res => {
+              btn.innerText = "Send ➔"; btn.disabled = false;
+              if(res.ok) {
+                  document.getElementById('elig-chat-input').value = "";
+                  if(fileInput) fileInput.value = "";
+                  document.getElementById('modal-elig-chat').style.display = 'none';
+                  showMsg("Reply sent to Payton!", true);
+                  load();
+              } else { 
+                  showMsg(res.message, false); 
+              }
+          }).withFailureHandler(err => {
+              btn.innerText = "Send ➔"; btn.disabled = false;
+              showMsg("Network Error: Ensure you clicked Deploy -> New Deployment.", false);
+          }).hospitalSendEligChat(token, cid, msg, filesData);
+
+      } catch(err) {
+          btn.innerText = "Send ➔"; btn.disabled = false;
+          showMsg("Error processing file: " + err.message, false);
+      }
+  }
+
+  function reopenEligChat(cid, btn) {
+      btn.innerText = "⏳ Reopening...";
+      btn.disabled = true;
+      google.script.run.withSuccessHandler(res => {
+          if(res.ok) {
+              document.getElementById('modal-elig-chat').style.display = 'none';
+              showMsg("Chat Reopened!", true); 
+              load(); 
+          } else { 
+              showMsg(res.message, false); 
+              btn.innerText = "↻ Reopen Chat"; 
+              btn.disabled = false; 
+          }
+      }).hospitalReopenEligChat(token, cid);
+  }
+
+  function openApChat(cid) {
+      const row = window.hospMasterData.find(r => r.caseId === cid);
+      if(!row) return showMsg("Case data missing. Please refresh.", false);
+      
+      document.getElementById('ap-chat-context').innerHTML = `
+          <div style="display:flex; justify-content:space-between;">
+              <span><b>👤 Patient:</b> <span style="color:#0f766e;">${row.pName}</span></span>
+              <span><b>💰 Approx:</b> ₹${Number(row.approxCost).toLocaleString()}</span>
+          </div>
+          <div style="font-size:11px; color:#64748b; margin-top:2px;"><b>🩺 Dx:</b> ${row.diag} <span style="margin:0 5px;color:#cbd5e1;">|</span> <b>🔪 Px:</b> ${row.procedure}</div>
+          <div style="display:flex; justify-content:space-between; background:#e0f2fe; padding:6px; border-radius:4px; margin-top:6px; font-size:11px;">
+              <span><b>Billed:</b> ₹${Number(row.billed||0).toLocaleString()}</span>
+              <span><b>Disc:</b> ₹${Number(row.disc||0).toLocaleString()}</span>
+              <span><b>Adv:</b> ₹${Number(row.adv||0).toLocaleString()}</span>
+              <span style="color:#0f766e; font-weight:bold;"><b>Setup:</b> ₹${Number(row.autoAmt||0).toLocaleString()}</span>
+          </div>
+      `;
+
+      const box = document.getElementById('ap-chat-box');
+      if(!row.apChats || row.apChats.length === 0) {
+          box.innerHTML = '<div style="text-align:center; color:#94a3b8; font-size:12px; margin-top:20px;">No messages yet. Send an update to Payton.</div>';
+      } else {
+          box.innerHTML = row.apChats.map(c => {
+              let isMe = c.sender === 'HOSPITAL';
+              let align = isMe ? 'align-self:flex-end; background:#dcfce7; border:1px solid #16a34a;' : 'align-self:flex-start; background:#fff; border:1px solid #cbd5e1;';
+              let textColor = isMe ? '#166534' : '#1e293b';
+              let senderTag = isMe ? 'Hospital' : 'Payton';
+              let formattedMsg = c.msg.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:#2563eb; text-decoration:underline; word-break:break-all;">$1</a>');
+              return `<div style="max-width:85%; padding:10px 12px; border-radius:8px; ${align} box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+                  <div style="font-size:10px; font-weight:800; color:#94a3b8; margin-bottom:4px;">${senderTag}</div>
+                  <div style="font-size:13px; color:${textColor}; line-height:1.4; white-space:pre-wrap;">${formattedMsg}</div>
+                  <div style="font-size:9px; color:#64748b; margin-top:6px; text-align:${isMe?'right':'left'};">${c.time}</div>
+              </div>`;
+          }).join('');
+      }
+
+      let inputArea = document.getElementById('ap-chat-input-area');
+      if (row.apChatStatus === 'Closed') {
+          inputArea.innerHTML = `
+            <div style="text-align:center; color:#ef4444; font-weight:bold; font-size:12px;">🔒 Chat Closed by Payton.</div>
+            <button class="btn-primary" style="background:#f59e0b; border:none; width:100%; padding:10px 15px; margin-top:10px;" onclick="reopenApChat('${cid}', this)">↻ Reopen Chat</button>
+          `;
+      } else {
+          inputArea.innerHTML = `
+            <input type="hidden" id="ap-chat-cid" value="${cid}">
+            <div style="display:flex; gap:10px; align-items:center; background:#f1f5f9; padding:8px; border-radius:6px; border:1px solid #cbd5e1;">
+                <label style="font-size:11px; font-weight:bold; color:#475569; margin:0; flex-shrink:0;">📎 Attach Docs:</label>
+                <input type="file" id="ap-chat-files" multiple class="f-input" style="padding:4px; font-size:10px; margin:0; flex:1; border:none; background:transparent;">
+                <button onclick="document.getElementById('ap-chat-files').value='';" style="background:none; border:none; color:#ef4444; font-size:12px; cursor:pointer; padding:0 5px;" title="Clear Files">✖</button>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="ap-chat-input" class="f-input" style="margin:0; flex:1;" placeholder="Type your message or document details here... *">
+                <button class="btn-primary" style="width:auto; padding:10px 20px;" onclick="sendApChat(this)">Send ➔</button>
+            </div>
+            <div style="font-size:10px; color:#94a3b8; text-align:center; font-weight:bold;">⚠️ A text message is mandatory, even when uploading documents.</div>
+          `;
+      }
+      document.getElementById('modal-ap-chat').style.display = 'flex';
+      setTimeout(() => box.scrollTop = box.scrollHeight, 100);
+  }
+
+  async function sendApChat(btn) {
+      const cid = document.getElementById('ap-chat-cid').value;
+      const msg = document.getElementById('ap-chat-input').value.trim();
+      const fileInput = document.getElementById('ap-chat-files');
+      
+      if(!msg) return showMsg("A text message is mandatory.", false);
+      
+      btn.innerText = "⏳"; btn.disabled = true;
+      
+      try {
+          let filesData = [];
+          if (fileInput && fileInput.files.length > 0) {
+              btn.innerText = "Reading Files...";
+              for (let f of fileInput.files) {
+                  if (f.size > 15 * 1024 * 1024) { 
+                      btn.innerText = "Send ➔"; btn.disabled = false;
+                      return showMsg("File too large! Keep under 15MB.", false);
+                  }
+                  const b64 = await new Promise((resolve, reject) => { 
+                      const rd = new FileReader(); 
+                      rd.onload = () => resolve(rd.result.split(',')[1]); 
+                      rd.onerror = () => reject(new Error("File reading failed"));
+                      rd.readAsDataURL(f); 
+                  });
+                  filesData.push({data: b64, name: f.name, mime: f.type});
+              }
+          }
+          
+          btn.innerText = "Sending...";
+          google.script.run.withSuccessHandler(res => {
+              btn.innerText = "Send ➔"; btn.disabled = false;
+              if(res.ok) {
+                  document.getElementById('ap-chat-input').value = "";
+                  if(fileInput) fileInput.value = "";
+                  document.getElementById('modal-ap-chat').style.display = 'none';
+                  showMsg("Message sent to Payton!", true);
+                  load();
+              } else { 
+                  showMsg(res.message, false); 
+              }
+          }).hospitalSendApChat(token, cid, msg, filesData);
+      } catch(err) {
+          btn.innerText = "Send ➔"; btn.disabled = false;
+          showMsg("Error processing file: " + err.message, false);
+      }
+  }
+
+  function reopenApChat(cid, btn) {
+      btn.innerText = "Reopening...";
+      btn.disabled = true;
+      google.script.run.withSuccessHandler(res => {
+          if(res.ok) {
+              document.getElementById('modal-ap-chat').style.display = 'none';
+              showMsg("Chat Reopened!", true); load(); 
+          } else { showMsg(res.message, false); btn.innerText = "↻ Reopen Chat"; btn.disabled = false; }
+      }).hospitalReopenApChat(token, cid);
+  }
+</script>
+
+<div id="modal-elig-chat" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:99999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div class="card" style="width:480px; max-width:95%; background:white; text-align:left; display:flex; flex-direction:column; height:600px; padding:0; border-radius:12px; overflow:hidden; box-shadow:0 20px 25px -5px rgba(0,0,0,0.2);">
+    <div style="padding:15px 20px; background:#0f766e; color:white; display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0; font-size:16px; display:flex; align-items:center; gap:8px;">💬 Eligibility Q&A Chat</h3>
+      <button style="background:none; border:none; color:white; font-size:24px; cursor:pointer; line-height:1;" onclick="document.getElementById('modal-elig-chat').style.display='none'">&times;</button>
+    </div>
+    
+    <div id="elig-chat-context" style="padding:12px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:13px; color:#334155; display:flex; flex-direction:column; gap:6px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); z-index:10;"></div>
+    
+    <div id="elig-chat-box" style="flex:1; padding:20px; overflow-y:auto; background:#f1f5f9; display:flex; flex-direction:column; gap:12px;"></div>
+    
+    <div id="elig-chat-input-area" style="padding:15px; border-top:1px solid #e2e8f0; background:white; display:flex; flex-direction:column; gap:10px; z-index:10;"></div>
+  </div>
+</div>
+
+<div id="modal-ap-chat" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:99999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+  <div class="card" style="width:480px; max-width:95%; background:white; text-align:left; display:flex; flex-direction:column; height:600px; padding:0; border-radius:12px; overflow:hidden; box-shadow:0 20px 25px -5px rgba(0,0,0,0.2);">
+    <div style="padding:15px 20px; background:#0f766e; color:white; display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0; font-size:16px; display:flex; align-items:center; gap:8px;">💬 AutoPay Coordinator Chat</h3>
+      <button style="background:none; border:none; color:white; font-size:24px; cursor:pointer; line-height:1;" onclick="document.getElementById('modal-ap-chat').style.display='none'">&times;</button>
+    </div>
+    <div id="ap-chat-context" style="padding:12px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; font-size:13px; color:#334155; display:flex; flex-direction:column; gap:6px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); z-index:10;"></div>
+    <div id="ap-chat-box" style="flex:1; padding:20px; overflow-y:auto; background:#f1f5f9; display:flex; flex-direction:column; gap:12px;"></div>
+    <div id="ap-chat-input-area" style="padding:15px; border-top:1px solid #e2e8f0; background:white; display:flex; flex-direction:column; gap:10px; z-index:10;"></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,198 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+     body { font-family: 'Poppins', sans-serif; background: #f8fafc; padding: 20px; color: #1e293b; margin: 0; }
+     .card { background: white; padding: 25px 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+     .f-input { width: 100%; padding: 14px; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 20px; font-size: 14px; box-sizing: border-box; background: #f8fafc; }
+     .f-input:focus { outline: none; border-color: #0f766e; background: white; }
+     
+     .btn-add { background: #e2e8f0; color: #334155; padding: 14px; width: 100%; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px;}
+     .btn-add:active { background: #cbd5e1; }
+     
+     .btn-upload { background: #0f766e; color: white; padding: 16px; width: 100%; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(15, 118, 110, 0.2); margin-top: 15px; display: none; }
+     .btn-upload:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
+     
+     .queue-item { background:#f1f5f9; padding:12px; margin-top:10px; border-radius:8px; font-size:14px; display:flex; justify-content:space-between; align-items: center; border-left: 4px solid #0f766e;}
+     .remove-btn { color: #ef4444; font-weight: bold; cursor: pointer; padding: 5px; }
+
+     #success-box { display: none; background: #dcfce7; border: 1px solid #22c55e; color: #166534; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; animation: popIn 0.3s ease-out; }
+     @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+     
+     /* Styles for the new Patient Details Box */
+     .details-row { display: flex; justify-content: space-between; margin-bottom: 6px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 6px; }
+     .details-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+     .details-label { color: #64748b; font-size: 13px; }
+     .details-value { color: #0f766e; font-weight: 600; font-size: 13px; text-align: right; max-width: 60%; }
+  </style>
+</head>
+<body>
+
+  <div style="text-align:center; margin-bottom: 20px;">
+      <img src="https://cashlesseverywhere.com/images/logo/logo.png" style="height: 25px; width: auto;">
+  </div>
+
+  <div class="card">
+     <h2 style="margin-top:0; color:#0f766e; font-size: 22px;">Secure Document Upload</h2>
+     
+     <div style="background:#f1f5f9; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; color: #475569; text-align: center;">
+         Case Reference: <b id="display-cid" style="color:#0f766e; font-size: 15px;"><?= typeof cid !== 'undefined' ? cid : '' ?></b>
+     </div>
+
+     <div id="patient-details-box" style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: white;">
+         <div style="text-align:center; color:#94a3b8; font-size: 13px; font-weight: 600;">⏳ Loading case details securely...</div>
+     </div>
+
+     <div style="background:#fef2f2; border:1px solid #fca5a5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+         <b style="color:#b91c1c; font-size: 14px; display:block; margin-bottom:4px;">⚠️ Requested Information:</b>
+         <span id="display-query" style="color:#991b1b; font-size: 13px; font-weight:600; white-space:pre-wrap;"><?= typeof queryText !== 'undefined' && queryText ? queryText : 'Please upload the requested documents.' ?></span>
+     </div>
+     
+     <div id="success-box">
+        <b style="font-size: 16px;">✅ All Documents Uploaded!</b><br>
+        <span style="font-size:13px; display:block; margin-top:5px;">Your care team has been notified. You can close this page.</span>
+     </div>
+
+     <div id="add-section">
+         <label style="font-size:12px; font-weight:bold; color:#475569; text-transform:uppercase;">1. Select Document</label>
+         <input type="file" id="file-input" class="f-input" style="padding: 10px;">
+         
+         <label style="font-size:12px; font-weight:bold; color:#475569; text-transform:uppercase;">2. Name this Document</label>
+         <input type="text" id="file-name" class="f-input" placeholder="e.g. Aadhar Card, Lab Report...">
+         
+         <button class="btn-add" onclick="addDocumentToList()">➕ Add Document to List</button>
+     </div>
+
+     <div id="queue-container"></div>
+
+     <button id="upload-all-btn" class="btn-upload" onclick="uploadAllDocuments()">Upload All Documents ➔</button>
+  </div>
+
+  <script>
+    // Fallback logic for Case ID and Query
+    const activeCidEl = document.getElementById('display-cid');
+    const activeQueryEl = document.getElementById('display-query');
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (!activeCidEl.innerText.trim()) {
+        const urlCid = urlParams.get('cid');
+        if(urlCid) activeCidEl.innerText = urlCid;
+    }
+    if (activeQueryEl.innerText === 'Please upload the requested documents.') {
+        const urlQ = urlParams.get('q');
+        if(urlQ) activeQueryEl.innerText = urlQ;
+    }
+
+    const currentCid = activeCidEl.innerText.trim();
+
+    // --- NEW: FETCH PATIENT DATA SECURELY ---
+    if (currentCid) {
+        google.script.run.withSuccessHandler(function(details) {
+            const box = document.getElementById('patient-details-box');
+            if (details) {
+                box.innerHTML = `
+                    <div class="details-row"><span class="details-label">Patient Name:</span><span class="details-value">${details.patientName}</span></div>
+                    <div class="details-row"><span class="details-label">Hospital:</span><span class="details-value" style="color:#1e293b;">${details.hospitalName}</span></div>
+                    <div class="details-row"><span class="details-label">Admitted:</span><span class="details-value" style="color:#1e293b;">${details.doa}</span></div>
+                    <div class="details-row"><span class="details-label">Billed Charges:</span><span class="details-value" style="color:#1e293b;">₹ ${details.billed}</span></div>
+                `;
+            } else {
+                box.style.display = "none"; // Hide if case not found
+            }
+        }).getPatientInfoByCid(currentCid);
+    } else {
+        document.getElementById('patient-details-box').style.display = "none";
+    }
+
+    // --- MULTI-FILE QUEUE LOGIC ---
+    let fileQueue = [];
+
+    function addDocumentToList() {
+        const fileInput = document.getElementById('file-input');
+        const nameInput = document.getElementById('file-name').value.trim();
+
+        if (!fileInput.files[0]) return alert("Please select a file first!");
+
+        const file = fileInput.files[0];
+        const finalName = nameInput ? nameInput + "." + file.name.split('.').pop() : file.name;
+
+        fileQueue.push({ file: file, name: finalName });
+        renderQueue();
+
+        fileInput.value = "";
+        document.getElementById('file-name').value = "";
+    }
+
+    function removeDocument(index) {
+        fileQueue.splice(index, 1);
+        renderQueue();
+    }
+
+    function renderQueue() {
+        const queueContainer = document.getElementById('queue-container');
+        const uploadBtn = document.getElementById('upload-all-btn');
+
+        if (fileQueue.length === 0) {
+            queueContainer.innerHTML = "";
+            uploadBtn.style.display = "none";
+            return;
+        }
+
+        let html = '<div style="margin-top:25px;"><b style="color:#0f766e;">Documents ready to upload:</b></div>';
+        fileQueue.forEach((item, index) => {
+            html += `
+            <div class="queue-item">
+                <span style="font-weight:600;">📄 ${item.name}</span>
+                <span class="remove-btn" onclick="removeDocument(${index})">✖</span>
+            </div>`;
+        });
+
+        queueContainer.innerHTML = html;
+        uploadBtn.innerText = `Upload All ${fileQueue.length} Documents ➔`;
+        uploadBtn.style.display = "block";
+    }
+
+    async function uploadAllDocuments() {
+        if (!currentCid) return alert("Error: Case ID is missing.");
+
+        const uploadBtn = document.getElementById('upload-all-btn');
+        const addSection = document.getElementById('add-section');
+        const successBox = document.getElementById('success-box');
+
+        addSection.style.display = "none";
+        uploadBtn.disabled = true;
+
+        for (let i = 0; i < fileQueue.length; i++) {
+            uploadBtn.innerText = `⏳ Uploading ${i + 1} of ${fileQueue.length}...`;
+            let item = fileQueue[i];
+            
+            const b64 = await new Promise(r => { 
+                const rd = new FileReader(); 
+                rd.onload = () => r(rd.result.split(',')[1]); 
+                rd.readAsDataURL(item.file); 
+            });
+
+            const fileData = { data: b64, name: item.name, mime: item.file.type };
+
+            try {
+                await new Promise((resolve, reject) => {
+                    google.script.run
+                    .withSuccessHandler(res => { if(res.ok) resolve(); else reject(new Error(res.message)); })
+                    .withFailureHandler(err => reject(err))
+                    .patientUploadHandler(currentCid, fileData);
+                });
+            } catch (error) {
+                alert(`Error uploading ${item.name}. Continuing with the rest...`);
+            }
+        }
+
+        fileQueue = [];
+        renderQueue();
+        uploadBtn.style.display = "none";
+        successBox.style.display = "block";
+    }
+  </script>
+</body>
+</html>
