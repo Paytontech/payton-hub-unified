@@ -114,6 +114,26 @@ def dashboard():
         return redirect(url_for("index"))
     return render_template("internal_dashboard.html", user=session["user"])
 
+@app.route("/dashboard/internal")
+def dashboard_internal():
+    if "user" not in session: return redirect(url_for("index"))
+    return render_template("internal_dashboard.html", user=session["user"])
+
+@app.route("/dashboard/hospital")
+def dashboard_hospital():
+    if "user" not in session: return redirect(url_for("index"))
+    return render_template("hospital_dashboard.html", user=session["user"])
+
+@app.route("/dashboard/logistics")
+def dashboard_logistics():
+    if "user" not in session: return redirect(url_for("index"))
+    return render_template("logistics_dashboard.html", user=session["user"])
+
+@app.route("/dashboard/patient")
+def dashboard_patient():
+    # Patient area might not need a session if it's public upload
+    return render_template("patient_upload.html")
+
 # --- GAS COMPATIBILITY LAYER ---
 
 @app.route("/api/gas", methods=["POST"])
@@ -155,11 +175,17 @@ def gas_proxy():
 
 # --- PORTED LOGIC HANDLERS ---
 
-def handle_global_login(u, p):
+def handle_global_login(u, p, loginType="internal"):
     user = get_user_by_email(u)
     if user and str(user.get("Password")) == str(p):
         session["user"] = user
-        return {"ok": True, "url": "/dashboard"}
+        url_map = {
+            "internal": "/dashboard/internal",
+            "hospital": "/dashboard/hospital",
+            "logistics": "/dashboard/logistics",
+            "patient": "/dashboard/patient"
+        }
+        return {"ok": True, "url": url_map.get(loginType, "/dashboard/internal")}
     return {"ok": False, "message": "Invalid Credentials"}
 
 def handle_get_tv_metrics(token=None):

@@ -76,6 +76,15 @@
         <label class="f-label">Password</label>
         <input type="password" id="p" class="f-input" placeholder="••••••••••••">
       </div>
+      <div class="input-group">
+        <label class="f-label">Login As</label>
+        <select id="loginType" class="f-input" style="font-weight: 600; color: #005F6A; border-color: #005F6A; background: #f0fdfa;">
+          <option value="internal">Payton Internal Hub</option>
+          <option value="hospital">Hospital Portal</option>
+          <option value="logistics">Logistics Dispatch</option>
+          <option value="patient">Patient Upload Area</option>
+        </select>
+      </div>
       <button class="btn-login" id="btn" onclick="login()">Sign In</button>
       <div id="msg" class="msg-box"></div>
     </div>
@@ -92,6 +101,7 @@
     function login() {
       const u = document.getElementById('u').value.trim();
       const p = document.getElementById('p').value.trim();
+      const loginType = document.getElementById('loginType').value;
       const btn = document.getElementById('btn');
       const msg = document.getElementById('msg');
       
@@ -118,7 +128,7 @@
             msg.className = "msg-box err";
             btn.disabled = false;
         })
-        .globalLogin(u, p);
+        .globalLogin(u, p, loginType);
     }
 
     function toggleBtn() {
