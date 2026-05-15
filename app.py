@@ -30,10 +30,22 @@ SHEET_HOSP_MASTER = "01_Hospital_Master"
 # --- CORE UTILITIES ---
 
 def get_user_by_email(email):
-    users = sheets.get_sheet_data(SHEET_USERS)
-    for u in users:
-        if str(u.get("Email", "")).lower() == email.lower():
-            return u
+    # Hardcoded admin fallback for initial setup
+    if str(email).lower() == "rajeev4494@payton.com":
+        return {
+            "Email": "rajeev4494@payton.com",
+            "Password": "Rajeev@7619364493++",
+            "Full_Name": "Rajeev (Admin)",
+            "Role": "Super Admin"
+        }
+    
+    try:
+        users = sheets.get_sheet_data(SHEET_USERS)
+        for u in users:
+            if str(u.get("Email", "")).lower() == email.lower():
+                return u
+    except Exception as e:
+        print(f"Error fetching users from sheet: {e}")
     return None
 
 def get_safe_date(val):
