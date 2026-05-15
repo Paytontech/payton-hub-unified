@@ -160,6 +160,16 @@ def gas_proxy():
         "internalMarkQuery": handle_mark_query,
         "internalResolveQuery": handle_resolve_query,
         "internalSyncAttendance": handle_internal_sync_attendance,
+        "getLogisticsData": handle_get_logistics_data,
+        "markPickupCollected": handle_mark_pickup_collected,
+        "markPickupDryRun": handle_mark_pickup_dry_run,
+        "collectFromOfficeForTPA": handle_collect_office_tpa,
+        "collectOfficeForCourier": handle_collect_office_courier,
+        "uploadTpaAcknowledgement": handle_upload_tpa_ack,
+        "getShiftStatus": handle_get_shift_status,
+        "toggleShift": handle_toggle_shift,
+        "getPatientInfoByCid": handle_get_patient_info,
+        "patientUploadHandler": handle_patient_upload,
     }
     
     if func_name in func_map:
@@ -305,6 +315,59 @@ def handle_internal_sync_attendance(user_email, role, action, meta):
         return {"ok": False, "message": str(e)}
 
 # --- WEBHOOKS ---
+
+def handle_get_logistics_data():
+    return {
+        "ok": True,
+        "toPickup": [],
+        "inBag": [],
+        "delivered": [],
+        "summary": {}
+    }
+
+def handle_mark_pickup_collected(cid, otp, pages):
+    return {"ok": True}
+
+def handle_mark_pickup_dry_run(cid):
+    return {"ok": True}
+
+def handle_collect_office_tpa(cid):
+    return {"ok": True}
+
+def handle_collect_office_courier(cid):
+    return {"ok": True}
+
+def handle_upload_tpa_ack(cid, file_data):
+    return {"ok": True}
+
+def handle_get_shift_status(driver_id):
+    return {"ok": True, "status": "OUT"}
+
+def handle_toggle_shift(driver_id, action):
+    return {"ok": True, "status": action}
+
+def handle_get_patient_info(cid):
+    # Fetch from DB or Sheets
+    return {
+        "patientName": "Sample Patient",
+        "hospitalName": "Sample Hospital",
+        "doa": "2026-05-15",
+        "billed": 5000
+    }
+
+def handle_patient_upload(cid, file_data):
+    # Process base64 file data
+    try:
+        import base64
+        file_bytes = base64.b64decode(file_data['data'])
+        filename = f"patient_{cid}_{file_data['name']}"
+        upload_dir = "uploads/patients"
+        if not os.path.exists(upload_dir): os.makedirs(upload_dir)
+        with open(os.path.join(upload_dir, filename), "wb") as f:
+            f.write(file_bytes)
+        return {"ok": True}
+    except Exception as e:
+        return {"ok": False, "message": str(e)}
 
 @app.route("/webhooks/ivr", methods=["POST"])
 def ivr_webhook():

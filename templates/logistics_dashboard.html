@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -157,7 +157,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
   </div>
 
-  
+  <!-- 🚨 API ADAPTER INJECTION 🚨 -->
+  <script src="{{ url_for('static', filename='js/api_adapter.js') }}"></script>
+
   <script>
     // 🛡️ SECURE TOKEN PULL
     const urlParams = new URLSearchParams(window.location.search);
