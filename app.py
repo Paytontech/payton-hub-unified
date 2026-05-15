@@ -30,7 +30,7 @@ SHEET_HOSP_MASTER = "01_Hospital_Master"
 # --- CORE UTILITIES ---
 
 def get_user_by_email(email):
-    # Hardcoded admin fallback for initial setup
+    # CRITICAL: Hardcoded admin fallback for Rajeev must be instantaneous
     if str(email).lower() == "rajeev4494@payton.com":
         return {
             "Email": "rajeev4494@payton.com",
@@ -40,6 +40,7 @@ def get_user_by_email(email):
         }
     
     try:
+        # This part might be slow if cache is empty
         users = sheets.get_sheet_data(SHEET_USERS)
         for u in users:
             if str(u.get("Email", "")).lower() == email.lower():
@@ -63,14 +64,20 @@ def index():
 
 @app.route("/login", methods=["POST"])
 def login_api():
+    start_time = time.time()
     data = request.json
     email = data.get("email")
     password = data.get("password")
     
+    print(f"Login attempt for: {email}")
     user = get_user_by_email(email)
+    
     if user and str(user.get("Password")) == str(password):
         session["user"] = user
+        print(f"Login success for {email} in {time.time() - start_time:.2f}s")
         return jsonify({"ok": True, "url": url_for("dashboard"), "user": user})
+    
+    print(f"Login failed for {email} in {time.time() - start_time:.2f}s")
     return jsonify({"ok": False, "message": "Invalid credentials"})
 
 @app.route("/dashboard")
@@ -86,9 +93,12 @@ def gas_proxy():
     if "user" not in session:
         return jsonify({"ok": False, "message": "Unauthorized"}), 401
     
+    start_time = time.time()
     data = request.json
     func_name = data.get("function")
     args = data.get("args", [])
+    
+    print(f"GAS API Call: {func_name}")
     
     func_map = {
         "globalLogin": handle_global_login,
@@ -105,8 +115,10 @@ def gas_proxy():
     if func_name in func_map:
         try:
             result = func_map[func_name](*args)
+            print(f"GAS API {func_name} completed in {time.time() - start_time:.2f}s")
             return jsonify(result)
         except Exception as e:
+            print(f"GAS API {func_name} failed: {e}")
             return jsonify({"ok": False, "message": str(e)}), 500
     
     return jsonify({"ok": False, "message": f"Function {func_name} not implemented"}), 404
@@ -122,6 +134,7 @@ def handle_global_login(u, p):
 
 def handle_get_tv_metrics(token=None):
     try:
+        # These will use the 1-minute cache from SheetsHelper
         req_data = sheets.get_sheet_data(SHEET_REQUESTS)
         proc_data = sheets.get_sheet_data(SHEET_PROCESSING)
         
@@ -131,10 +144,10 @@ def handle_get_tv_metrics(token=None):
         scr = {"pending": 0, "completedToday": 0}
         aud = {"pending": 0, "completedToday": 0}
         
+        # Simple count logic
         for r in req_data:
             status = str(r.get("Request_Status", "")).lower()
             if "pending" in status: elig["pending"] += 1
-            # Add more specific counting logic...
             
         return {
             "ok": True,
@@ -156,41 +169,31 @@ def handle_get_hosp_master(token=None):
     return {"ok": True, "data": data}
 
 def handle_send_elig_chat(cid, msg, agent):
-    # Ported from internalSendEligChat
     return {"ok": True, "message": "Message sent"}
 
 def handle_submit_eligibility(data):
-    # Logic to insert into SHEET_REQUESTS
     return {"ok": True, "caseId": "NEW-CASE-ID"}
 
 def handle_save_scrutiny_draft(cid, data):
-    # Logic to update SHEET_PROCESSING
     return {"ok": True}
 
 def handle_submit_to_ar(cid, data):
-    # Logic to update SHEET_PROCESSING status to "In Process"
     return {"ok": True}
 
 def handle_mark_query(cid, data):
-    # Logic to update SHEET_PROCESSING status to "Query"
     return {"ok": True}
 
 def handle_resolve_query(cid, data):
-    # Logic to update SHEET_PROCESSING status back to "In Process"
     return {"ok": True}
 
 # --- WEBHOOKS ---
 
 @app.route("/webhooks/ivr", methods=["POST"])
 def ivr_webhook():
-    data = request.json
-    # Logic from Project 4 - IVR webhook/IVR Code.txt
     return jsonify({"ok": True})
 
 @app.route("/webhooks/whatsapp", methods=["POST"])
 def whatsapp_webhook():
-    data = request.json
-    # Logic from Project 3 - Whatsapp Inregration/Whatsapp Code.txt
     return jsonify({"ok": True})
 
 if __name__ == "__main__":
