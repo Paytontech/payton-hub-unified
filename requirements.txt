@@ -8,3 +8,5 @@ pandas
 pymupdf
 gunicorn
 psycopg2-binary
+flask-sqlalchemy
+openpyxl
