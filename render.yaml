@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: payton-hub-consolidated
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: HUB_SECRET_KEY
+        generateValue: true
+      - key: SPREADSHEET_ID
+        sync: false
+      - key: ZOHO_CLIENT_ID
+        sync: false
+      - key: ZOHO_CLIENT_SECRET
+        sync: false
+      - key: ZOHO_REFRESH_TOKEN
+        sync: false
+      - key: ZOHO_ORG_ID
+        sync: false
+      - key: VAULT_AUTH_TOKEN
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false
