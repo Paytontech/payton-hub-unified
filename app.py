@@ -170,6 +170,7 @@ def gas_proxy():
         "toggleShift": handle_toggle_shift,
         "getPatientInfoByCid": handle_get_patient_info,
         "patientUploadHandler": handle_patient_upload,
+        "hospitalGetTickets": handle_hospital_get_tickets,
     }
     
     if func_name in func_map:
@@ -317,13 +318,88 @@ def handle_internal_sync_attendance(user_email, role, action, meta):
 # --- WEBHOOKS ---
 
 def handle_get_logistics_data():
-    return {
-        "ok": True,
-        "toPickup": [],
-        "inBag": [],
-        "delivered": [],
-        "summary": {}
-    }
+    try:
+        # Fetch data from core sheets
+        requests_data = sheets.get_sheet_data(SHEET_REQUESTS)
+        
+        to_pickup = []
+        in_bag = []
+        delivered = []
+        summary = {}
+
+        for r in requests_data:
+            pickup_status = str(r.get("Pickup_Status", "")).lower()
+            case_id = str(r.get("Case_ID", ""))
+            
+            if "requested" in pickup_status:
+                # Logic to determine type
+                p_type = "hospital_pickup"
+                if "patient" in str(r.get("Type", "")).lower(): p_type = "patient_pickup"
+                
+                item = {
+                    "uid": case_id,
+                    "caseId": case_id,
+                    "type": p_type,
+                    "targetName": r.get("Hospital_Name", "Unknown"),
+                    "patient": r.get("Patient_Name", "N/A"),
+                    "phone": r.get("Patient_Phone", "N/A"),
+                    "pickupTime": r.get("Pickup_Time", "ASAP"),
+                    "targetAddress": r.get("Patient_Address", ""),
+                    "loc": r.get("Hospital_Location", ""),
+                    "tpaName": r.get("TPA_Name", "General")
+                }
+                to_pickup.append(item)
+                
+                # Update summary
+                loc = item["targetName"]
+                summary[loc] = summary.get(loc, 0) + 1
+                
+            elif "collected" in pickup_status:
+                in_bag.append({
+                    "uid": case_id,
+                    "caseId": case_id,
+                    "type": "outbound_transit",
+                    "targetName": "Payton Office",
+                    "patient": r.get("Patient_Name", "N/A")
+                })
+            elif "delivered" in pickup_status:
+                delivered.append({
+                    "caseId": case_id,
+                    "targetName": "Payton Office",
+                    "patient": r.get("Patient_Name", "N/A")
+                })
+
+        return {
+            "ok": True,
+            "toPickup": to_pickup,
+            "inBag": in_bag,
+            "delivered": delivered,
+            "summary": summary
+        }
+    except Exception as e:
+        print(f"Logistics Data Error: {e}")
+        return {"ok": False, "message": str(e)}
+
+def handle_hospital_get_tickets(token=None):
+    try:
+        data = sheets.get_sheet_data(SHEET_TICKETS)
+        tickets = []
+        for r in data:
+            tickets.append({
+                "tktId": r.get("Ticket_ID", "TKT-000"),
+                "date": r.get("Timestamp", ""),
+                "caseId": r.get("Case_ID", ""),
+                "patient": r.get("Patient_Name", ""),
+                "subject": r.get("Subject", "No Subject"),
+                "message": r.get("Message", ""),
+                "status": r.get("Status", "Open"),
+                "financials": r.get("Financial_Info", ""),
+                "logs": r.get("Update_Logs", "[]")
+            })
+        return {"ok": True, "data": tickets}
+    except Exception as e:
+        print(f"Hospital Tickets Error: {e}")
+        return {"ok": False, "message": str(e)}
 
 def handle_mark_pickup_collected(cid, otp, pages):
     return {"ok": True}
